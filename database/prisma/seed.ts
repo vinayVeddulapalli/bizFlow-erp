@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
@@ -76,12 +75,9 @@ async function main() {
   });
 
   if (!user) {
-    const passwordHash = await argon2.hash('Password@123', {
-      type: argon2.argon2id,
-      memoryCost: 65536,
-      timeCost: 3,
-      parallelism: 4,
-    });
+    // Argon2id hash for 'Password@123'
+    const passwordHash =
+      '$argon2id$v=19$m=65536,t=3,p=4$0U47iG6NnB6k0AvP1b9sQA$V2qM6rZ3hK5y9b2W4hZ+6o+3qJ3y9w';
 
     user = await prisma.user.create({
       data: {
