@@ -1,0 +1,87 @@
+name: BizFlow ERP CI/CD Pipeline
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-build:
+    name: Lint, Typecheck & Full Monorepo Build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bizflow_admin
+          POSTGRES_PASSWORD: bizflow_secret_password
+          POSTGRES_DB: bizflow_erp_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://bizflow_admin:bizflow_secret_password@localhost:5432/bizflow_erp_test?schema=public
+      JWT_ACCESS_SECRET: test_ci_jwt_access_secret_key_12345
+      JWT_REFRESH_SECRET: test_ci_jwt_refresh_secret_key_67890
+      NEXT_TELEMETRY_DISABLED: 1
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.21.0
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Monorepo Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma ORM Client
+        run: pnpm exec prisma generate --schema=./database/prisma/schema.prisma
+
+      - name: Verify Monorepo Builds (Turborepo)
+        run: pnpm build
+
+      - name: Monorepo Code Quality (Lint)
+        run: pnpm lint --if-present
