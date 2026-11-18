@@ -53,6 +53,24 @@ export class SalesInvoiceController {
     return this.salesInvoiceService.createInvoice(tenant.organizationId, validated);
   }
 
+  @Post('sync')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermissions('sales.create', 'sales.manage')
+  @ApiOperation({ summary: 'Idempotent offline invoice synchronization endpoint' })
+  async syncInvoice(
+    @ActiveTenant() tenant: TenantContext,
+    @Body() body: any
+  ) {
+    const { operationId, autoPost, ...invoiceInput } = body;
+    const validated = createSalesInvoiceSchema.parse(invoiceInput);
+    return this.salesInvoiceService.syncInvoice(
+      tenant.organizationId,
+      operationId || `OP-${Date.now()}`,
+      validated,
+      autoPost !== false
+    );
+  }
+
   @Post(':id/post')
   @HttpCode(HttpStatus.OK)
   @RequirePermissions('sales.post', 'sales.manage')

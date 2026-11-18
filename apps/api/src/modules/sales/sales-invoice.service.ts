@@ -454,4 +454,39 @@ export class SalesInvoiceService {
       </html>
     `;
   }
+
+  async syncInvoice(
+    organizationId: string,
+    operationId: string,
+    input: CreateSalesInvoiceInput,
+    autoPost: boolean = true
+  ) {
+    const idempotencyKey = `${organizationId}:sync_invoice:${operationId}`;
+    const existing = await this.prisma.idempotencyRecord.findUnique({
+      where: { key: idempotencyKey },
+    });
+
+    if (existing) {
+      return existing.responseBody;
+    }
+
+    const draft = await this.createInvoice(organizationId, input);
+    let result: any = draft;
+    if (autoPost) {
+      result = await this.postInvoice(organizationId, draft.id);
+    }
+
+    await this.prisma.idempotencyRecord.create({
+      data: {
+        key: idempotencyKey,
+        organizationId,
+        endpoint: '/sales/invoices/sync',
+        responseStatus: 200,
+        responseBody: result as any,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    return result;
+  }
 }
