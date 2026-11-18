@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (targetOrg) {
           setActiveOrgId(targetOrg);
-          setClientAuth(null, targetOrg);
+          setClientAuth(undefined, targetOrg);
         }
       }
     } catch {
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res: any = await apiClient.post(`/organizations/${orgId}/switch`);
       if (res && res.data) {
         setActiveOrgId(orgId);
-        setClientAuth(null, orgId);
+        setClientAuth(undefined, orgId);
         await refreshProfile();
         // Refresh router so current dashboard updates context
         router.refresh();

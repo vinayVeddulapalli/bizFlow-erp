@@ -15,6 +15,22 @@ import { RequirePermissions } from '../../common/decorators/roles.decorator';
 export class StockController {
   constructor(private readonly stockService: StockService) {}
 
+  @Get('warehouses')
+  @ApiOperation({ summary: 'List all warehouses for organization' })
+  async getWarehouses(@ActiveTenant() tenant: TenantContext) {
+    return this.stockService.getWarehouses(tenant.organizationId);
+  }
+
+  @Post('warehouses')
+  @RequirePermissions('inventory.create', 'inventory.manage')
+  @ApiOperation({ summary: 'Create a new warehouse location' })
+  async createWarehouse(
+    @ActiveTenant() tenant: TenantContext,
+    @Body() body: { name: string; code: string; branchId?: string }
+  ) {
+    return this.stockService.createWarehouse(tenant.organizationId, body);
+  }
+
   @Get('stock-levels')
   @ApiOperation({ summary: 'Get current stock balance per warehouse' })
   async getStockLevels(

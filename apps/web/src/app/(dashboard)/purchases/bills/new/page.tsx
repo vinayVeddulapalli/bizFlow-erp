@@ -10,7 +10,7 @@ import {
   toDecimal,
   formatCurrency,
 } from '@bizflow/shared-utils';
-import { Plus, Trash2, ArrowLeft, Loader2, ShoppingBag } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Loader2, ShoppingBag, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface LineItem {
@@ -199,6 +199,14 @@ export default function NewPurchaseBillPage() {
           </button>
         </div>
       </div>
+
+      {/* Error Alert */}
+      {createMutation.isError && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{(createMutation.error as any)?.message || 'Failed to save vendor bill. Ensure supplier, branch, and items are properly filled.'}</span>
+        </div>
+      )}
 
       {/* Meta Grid */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">

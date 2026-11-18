@@ -14,6 +14,31 @@ export class StockService {
     private readonly sequenceService: DocumentSequenceService
   ) {}
 
+  async getWarehouses(organizationId: string) {
+    return this.prisma.warehouse.findMany({
+      where: { organizationId },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async createWarehouse(organizationId: string, data: { name: string; code: string; branchId?: string }) {
+    let branchId = data.branchId;
+    if (!branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { organizationId },
+      });
+      branchId = branch ? branch.id : '';
+    }
+    return this.prisma.warehouse.create({
+      data: {
+        organizationId,
+        branchId,
+        name: data.name,
+        code: data.code.toUpperCase(),
+      },
+    });
+  }
+
   async getStockLevels(organizationId: string, warehouseId?: string) {
     return this.prisma.stockLevel.findMany({
       where: {

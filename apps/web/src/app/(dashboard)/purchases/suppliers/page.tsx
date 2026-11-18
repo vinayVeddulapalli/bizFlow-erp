@@ -297,6 +297,12 @@ export default function SuppliersPage() {
                 />
               </div>
 
+              {createMutation.isError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">
+                  {(createMutation.error as any)?.message || 'Failed to save supplier. Please check all required fields.'}
+                </div>
+              )}
+
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"

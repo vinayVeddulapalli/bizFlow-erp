@@ -91,7 +91,7 @@ export default function ProductsPage() {
   const { data: uoms = [] } = useQuery<Array<{ id: string; name: string; symbol: string }>>({
     queryKey: ['inventory-uoms'],
     queryFn: async () => {
-      const res: any = await apiClient.get('/inventory/stock/uoms');
+      const res: any = await apiClient.get('/inventory/uoms');
       return res.data;
     },
   });
@@ -100,7 +100,7 @@ export default function ProductsPage() {
   const { data: warehouses = [] } = useQuery<Array<{ id: string; name: string; code: string }>>({
     queryKey: ['inventory-warehouses'],
     queryFn: async () => {
-      const res: any = await apiClient.get('/inventory/stock/warehouses');
+      const res: any = await apiClient.get('/inventory/warehouses');
       return res.data;
     },
   });

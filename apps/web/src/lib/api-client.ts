@@ -13,16 +13,11 @@ export const apiClient = axios.create({
 let accessToken: string | null = null;
 let activeOrganizationId: string | null = null;
 
-export function setClientAuth(token: string | null, orgId?: string | null) {
-  accessToken = token;
-  if (orgId !== undefined) {
-    activeOrganizationId = orgId;
-    if (orgId) {
-      localStorage.setItem('bizflow_active_org_id', orgId);
-    } else {
-      localStorage.removeItem('bizflow_active_org_id');
-    }
+export function getClientAccessToken(): string | null {
+  if (typeof window !== 'undefined' && !accessToken) {
+    accessToken = localStorage.getItem('bizflow_access_token');
   }
+  return accessToken;
 }
 
 export function getClientActiveOrgId(): string | null {
@@ -32,9 +27,34 @@ export function getClientActiveOrgId(): string | null {
   return activeOrganizationId;
 }
 
+export function setClientAuth(token?: string | null, orgId?: string | null) {
+  if (token !== undefined) {
+    accessToken = token;
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem('bizflow_access_token', token);
+      } else {
+        localStorage.removeItem('bizflow_access_token');
+      }
+    }
+  }
+
+  if (orgId !== undefined) {
+    activeOrganizationId = orgId;
+    if (typeof window !== 'undefined') {
+      if (orgId) {
+        localStorage.setItem('bizflow_active_org_id', orgId);
+      } else {
+        localStorage.removeItem('bizflow_active_org_id');
+      }
+    }
+  }
+}
+
 apiClient.interceptors.request.use((config) => {
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
+  const token = getClientAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   const orgId = getClientActiveOrgId();
   if (orgId) {
@@ -47,8 +67,8 @@ apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
     const errorPayload = error.response?.data?.error || {
-      message: error.message || 'An unexpected network error occurred',
-      code: 'NETWORK_ERROR',
+      message: error.response?.data?.message || error.message || 'An unexpected network error occurred',
+      code: error.response?.status === 401 ? 'UNAUTHORIZED' : 'NETWORK_ERROR',
     };
     return Promise.reject(errorPayload);
   }
