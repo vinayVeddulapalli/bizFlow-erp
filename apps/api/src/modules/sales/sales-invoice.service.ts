@@ -206,6 +206,51 @@ export class SalesInvoiceService {
         },
       });
 
+      // Deduct warehouse stock for goods
+      const defaultWh = await tx.warehouse.findFirst({
+        where: { organizationId, branchId: invoice.branchId },
+      });
+
+      if (defaultWh) {
+        for (const item of invoice.items) {
+          if (item.productId) {
+            const qty = toDecimal(item.quantity.toString());
+            await tx.stockLevel.upsert({
+              where: {
+                organizationId_productId_warehouseId: {
+                  organizationId,
+                  productId: item.productId,
+                  warehouseId: defaultWh.id,
+                },
+              },
+              update: {
+                quantity: { decrement: qty.toNumber() },
+              },
+              create: {
+                organizationId,
+                productId: item.productId,
+                warehouseId: defaultWh.id,
+                quantity: new Decimal(0).minus(qty).toString(),
+              },
+            });
+
+            await tx.stockMovement.create({
+              data: {
+                organizationId,
+                productId: item.productId,
+                warehouseId: defaultWh.id,
+                movementType: 'SALES_INVOICE',
+                quantity: new Decimal(0).minus(qty).toString(),
+                unitCost: toDecimal(item.unitPrice.toString()).toString(),
+                referenceType: 'sales_invoice',
+                referenceId: invoice.id,
+                notes: `Sold via Invoice ${officialNumber}`,
+              },
+            });
+          }
+        }
+      }
+
       // Log to audit log
       await tx.auditLog.create({
         data: {

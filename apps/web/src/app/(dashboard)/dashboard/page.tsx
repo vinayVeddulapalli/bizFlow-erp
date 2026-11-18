@@ -10,11 +10,11 @@ import {
   Clock,
   Building,
   Warehouse,
-  Users,
   Plus,
   ArrowUpRight,
   AlertTriangle,
   Receipt,
+  Package,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -25,6 +25,8 @@ interface DashboardData {
     outstandingReceivables: string;
     outstandingPayables: string;
     netCashFlow: string;
+    totalProducts?: number;
+    lowStockItems?: number;
   };
   counts: {
     branches: number;
@@ -162,7 +164,7 @@ export default function DashboardPage() {
           Company Infrastructure Status
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-slate-100">
             <div className="w-10 h-10 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center">
               <Building className="w-5 h-5" />
@@ -183,15 +185,43 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-slate-100">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
-              <Users className="w-5 h-5" />
+          <Link
+            href="/inventory/products"
+            className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-slate-100 hover:border-slate-300 transition"
+          >
+            <div className="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center">
+              <Package className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-xl font-bold text-slate-900">{data?.counts.teamMembers ?? 1}</div>
-              <div className="text-xs text-slate-500">Authorized Team Members</div>
+              <div className="text-xl font-bold text-slate-900">{data?.kpis.totalProducts ?? 0}</div>
+              <div className="text-xs text-slate-500">Active Catalog Items</div>
             </div>
-          </div>
+          </Link>
+
+          <Link
+            href="/inventory/products"
+            className={`flex items-center gap-4 p-4 rounded-lg border transition ${
+              (data?.kpis.lowStockItems ?? 0) > 0
+                ? 'bg-amber-50/80 border-amber-300 text-amber-900 hover:bg-amber-100'
+                : 'bg-slate-50 border-slate-100 hover:border-slate-300'
+            }`}
+          >
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                (data?.kpis.lowStockItems ?? 0) > 0
+                  ? 'bg-amber-200 text-amber-800'
+                  : 'bg-slate-200 text-slate-600'
+              }`}
+            >
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-xl font-bold">
+                {data?.kpis.lowStockItems ?? 0}
+              </div>
+              <div className="text-xs text-slate-500">Low Stock Reorders</div>
+            </div>
+          </Link>
         </div>
       </div>
 

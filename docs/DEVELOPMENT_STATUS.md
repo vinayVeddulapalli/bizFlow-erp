@@ -1,7 +1,7 @@
 # BizFlow ERP — Project Development Status & Tracking Log
 
 **Last Updated**: 2026-11-18  
-**Current Phase**: Phase 2 — Sales & Purchase Management (Completed & Verified)  
+**Current Phase**: Phase 3 — Inventory Management & Multi-Warehouse Operations (Completed & Verified)  
 **Project Lead**: Solo Developer (using Antigravity Premium)  
 **Repository Path**: `C:\Users\MYPC1\.gemini\antigravity\scratch\bizflow-erp`  
 
@@ -16,14 +16,62 @@
 | **MOD-02** | Executive Dashboard | Phase 1 | **COMPLETED** | 100% | Live DB aggregate queries, KPI cards, Org switcher shell. |
 | **MOD-03** | Sales & Receivables | Phase 2 | **COMPLETED** | 100% | Customers, Invoices, Live GST, Sequences, Payments, HTML/PDF. |
 | **MOD-04** | Purchase & Payables | Phase 2 | **COMPLETED** | 100% | Suppliers, Bills, Bill sequences, Balance tracking. |
-| **MOD-05** | Inventory & Warehouses | Phase 3 | **PENDING** | 0% | Next: Multi-warehouse, Stock ledger, Barcodes, Valuations. |
-| **MOD-06** | Finance & Accounting | Phase 4 | **PENDING** | 0% | Scope: Double-entry, Chart of Accounts, Journals, P&L, BS. |
-| **MOD-07** | Indian GST & Taxation | Phase 4 | **PENDING** | 0% | Scope: CGST/SGST/IGST, HSN, GSTR-1 & GSTR-3B preparation. |
+| **MOD-05** | Inventory & Warehouses | Phase 3 | **COMPLETED** | 100% | Multi-warehouse, Stock ledger, Transfers, Adjustments, Low stock alerts. |
+| **MOD-06** | Finance & Accounting | Phase 4 | **READY** | 0% | Next: Double-entry, Chart of Accounts, Journals, Ledger, P&L, BS. |
+| **MOD-07** | Indian GST & Taxation | Phase 4 | **READY** | 0% | Next: CGST/SGST/IGST, HSN, GSTR-1 & GSTR-3B preparation. |
 | **MOD-08** | CRM & Pipelines | Phase 5 | **PENDING** | 0% | Scope: Leads, Opportunities, Stage Kanban, Follow-ups. |
 | **MOD-09** | HR & Payroll | Phase 5 | **PENDING** | 0% | Scope: Employees, Attendance, Leaves, Salary Runs, Slips. |
 | **MOD-10** | Reports & Analytics | Phase 5 | **PENDING** | 0% | Scope: 30+ Financial & Operational reports (PDF/XLSX). |
 | **APP-MOB**| Mobile App (React Native Expo)| Phase 6 | **PENDING** | 0% | Scope: Offline SQLite, Outbox sync, Counter billing. |
 | **OPS-01** | Production Hardening & CI/CD| Phase 7 | **PENDING** | 0% | Scope: Security audit, E2E tests, Docker deploy. |
+
+---
+
+## 2. Phase 3 Accomplishments Log
+
+### Completed Tasks (Phase 3)
+- [x] **Prisma Database Models**:
+  - `ProductCategory`, `UnitOfMeasurement`, expanded `Product`, `StockLevel`, `MovementType`, `StockMovement`, `WarehouseTransfer`, `WarehouseTransferItem`, `StockAdjustment`, and `StockAdjustmentItem`.
+- [x] **Shared Types & Schemas**:
+  - `ProductDto`, `CategoryDto`, `UnitOfMeasurementDto`, `StockLevelDto`, `StockMovementDto`, `WarehouseTransferDto`, `StockAdjustmentDto`.
+  - Zod validation schemas for Products, Categories, Units of Measurement, Warehouse Transfers, and Stock Adjustments.
+- [x] **Inventory Backend Modules (`@bizflow/api`)**:
+  - `ProductService` & `ProductController`: Product master catalog with SKU, barcode, HSN/SAC, pricing, UOM, and multi-warehouse initial stock assignment.
+  - `CategoryService` & `CategoryController`: Hierarchical item categorization.
+  - `StockService` & `StockController`:
+    - Multi-warehouse stock tracking per product (`StockLevel`).
+    - Immutable audit trail ledger (`StockMovement`) covering IN, OUT, TRANSFER, and ADJUSTMENT.
+    - Automated stock decrement on sales invoice posting (`SALES_INVOICE`).
+    - Automated stock increment on purchase receipt posting (`PURCHASE_RECEIPT`).
+    - Inter-warehouse transfers (`TRANSFER_OUT` from source + `TRANSFER_IN` to destination).
+    - Stock physical adjustments and discrepancy reconciliation (`STOCK_ADJUSTMENT`) with audit reasons (Damaged, Spoiled, Shrinkage/Theft, Physical Count, Found Stock).
+  - `DashboardService`: Enhanced to calculate live active catalog counts and real-time low-stock threshold warnings.
+- [x] **Web Frontend (`@bizflow/web`)**:
+  - Product Catalog page (`/inventory/products`) with SKU, barcode, HSN/SAC, category, UOM, multi-warehouse stock breakdown, low-stock threshold warning badge, and "+ Add Product" modal with opening stock.
+  - Stock Movement Ledger (`/inventory/movements`) with full audit history, activity type badges, and reference numbers.
+  - Inter-Warehouse Stock Transfer form (`/inventory/transfers`) with multi-item rows and source/destination validation.
+  - Stock Adjustment form (`/inventory/adjustments`) with reason categories and discrepancy quantities (+/-).
+  - Executive Dashboard updated with Catalog Items count and interactive Low Stock Reorders alert.
+- [x] **Verification**: Full monorepo build with Turborepo passed cleanly (5 successful tasks, 0 failures, 17 static web routes).
+
+---
+
+## 3. Next Milestone: Phase 4 — Finance, Double-Entry Accounting & Indian GST
+
+1. **Double-Entry General Ledger Engine**:
+   - Chart of Accounts (Assets, Liabilities, Equity, Revenue, Expense) with standard Indian business accounting codes.
+   - Journal Entries (`JournalEntry`, `JournalEntryLine`) with transactional debit = credit balancing constraint.
+   - General Ledger, Cash Book, and Bank Book.
+   - Automatic journal entry generation on Sales Invoice posting, Purchase Bill posting, and Customer/Supplier payments.
+2. **Indian GST & Taxation Engine**:
+   - CGST, SGST, IGST calculations with HSN/SAC classification.
+   - Reverse Charge Mechanism (RCM) support.
+   - GSTR-1 monthly outward supplies summary report.
+   - GSTR-3B monthly tax computation and input tax credit (ITC) reconciliation.
+3. **Financial Statements**:
+   - Trial Balance (Live dynamic calculation).
+   - Profit & Loss Statement (P&L).
+   - Balance Sheet.
 
 ---
 

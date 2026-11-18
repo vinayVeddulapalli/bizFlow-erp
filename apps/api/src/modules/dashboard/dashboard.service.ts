@@ -15,6 +15,7 @@ export class DashboardService {
       purchaseBills,
       customers,
       suppliers,
+      products,
       recentLogs,
     ] = await Promise.all([
       this.prisma.branch.count({ where: { organizationId } }),
@@ -35,6 +36,17 @@ export class DashboardService {
       this.prisma.supplier.findMany({
         where: { organizationId, isActive: true },
         select: { currentBalance: true },
+      }),
+      this.prisma.product.findMany({
+        where: { organizationId, isActive: true, type: 'GOODS' },
+        select: {
+          id: true,
+          name: true,
+          minStockLevel: true,
+          stockLevels: {
+            select: { quantity: true },
+          },
+        },
       }),
       this.prisma.auditLog.findMany({
         where: { organizationId },
@@ -66,6 +78,18 @@ export class DashboardService {
       toDecimal(0)
     );
 
+    let lowStockCount = 0;
+    for (const prod of products) {
+      const minStock = toDecimal(prod.minStockLevel ? prod.minStockLevel.toString() : '0');
+      const totalStock = prod.stockLevels.reduce(
+        (sum, sl) => sum.plus(toDecimal(sl.quantity.toString())),
+        toDecimal(0)
+      );
+      if (minStock.gt(0) && totalStock.lte(minStock)) {
+        lowStockCount++;
+      }
+    }
+
     return {
       kpis: {
         totalSales: totalSales.toFixed(2),
@@ -73,6 +97,8 @@ export class DashboardService {
         outstandingReceivables: totalReceivables.toFixed(2),
         outstandingPayables: totalPayables.toFixed(2),
         netCashFlow: totalSales.minus(totalPurchases).toFixed(2),
+        totalProducts: products.length,
+        lowStockItems: lowStockCount,
       },
       counts: {
         branches: branchCount,

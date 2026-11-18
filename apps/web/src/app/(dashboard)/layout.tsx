@@ -19,6 +19,7 @@ import {
   MapPin,
   Menu,
   X,
+  History,
   Users,
 } from 'lucide-react';
 
@@ -37,7 +38,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Customers', href: '/sales/customers', icon: Users },
     { name: 'Purchase Bills', href: '/purchases/bills', icon: ShoppingBag },
     { name: 'Suppliers', href: '/purchases/suppliers', icon: Building },
-    { name: 'Inventory & Stock', href: '/inventory/products', icon: Package, badge: 'Phase 3' },
+    { name: 'Products & Stock', href: '/inventory/products', icon: Package },
+    { name: 'Stock Ledger', href: '/inventory/movements', icon: History },
     { name: 'Accounting & Ledger', href: '/accounting/journals', icon: BookOpen, badge: 'Phase 4' },
     { name: 'GST & Taxation', href: '/gst/reports', icon: Receipt, badge: 'Phase 4' },
     { name: 'Settings & Branches', href: '/settings', icon: Settings },
@@ -87,11 +89,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         switchOrganization(m.organizationId);
                         setIsOrgDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-700/50 transition ${
-                        m.organizationId === activeOrgId
+                      className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-700/50 transition ${m.organizationId === activeOrgId
                           ? 'text-teal-400 font-bold bg-slate-700/30'
                           : 'text-slate-300'
-                      }`}
+                        }`}
                     >
                       <span className="truncate">{m.organizationName}</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">
@@ -142,9 +143,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex-1 flex">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 top-16 z-20 w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`fixed inset-y-0 left-0 top-16 z-20 w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           <div className="py-4 px-3 space-y-1">
             <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -159,11 +159,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   key={item.name}
                   href={item.badge ? '#' : item.href}
                   onClick={() => setIsSidebarOpen(false)}
-                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition ${
-                    isActive
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition ${isActive
                       ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon className={`w-4 h-4 ${isActive ? 'text-teal-400' : 'text-slate-400'}`} />

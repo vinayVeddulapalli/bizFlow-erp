@@ -166,6 +166,51 @@ export class PurchaseBillService {
         },
       });
 
+      // Increment warehouse stock for purchased goods
+      const defaultWh = await tx.warehouse.findFirst({
+        where: { organizationId, branchId: bill.branchId },
+      });
+
+      if (defaultWh) {
+        for (const item of bill.items) {
+          if (item.productId) {
+            const qty = toDecimal(item.quantity.toString());
+            await tx.stockLevel.upsert({
+              where: {
+                organizationId_productId_warehouseId: {
+                  organizationId,
+                  productId: item.productId,
+                  warehouseId: defaultWh.id,
+                },
+              },
+              update: {
+                quantity: { increment: qty.toNumber() },
+              },
+              create: {
+                organizationId,
+                productId: item.productId,
+                warehouseId: defaultWh.id,
+                quantity: qty.toString(),
+              },
+            });
+
+            await tx.stockMovement.create({
+              data: {
+                organizationId,
+                productId: item.productId,
+                warehouseId: defaultWh.id,
+                movementType: 'PURCHASE_RECEIPT',
+                quantity: qty.toString(),
+                unitCost: toDecimal(item.unitCost.toString()).toString(),
+                referenceType: 'purchase_invoice',
+                referenceId: bill.id,
+                notes: `Purchased via Bill ${officialNumber}`,
+              },
+            });
+          }
+        }
+      }
+
       await tx.auditLog.create({
         data: {
           organizationId,
