@@ -19,6 +19,7 @@ import {
   MapPin,
   Menu,
   X,
+  Users,
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -32,8 +33,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Sales & Billing', href: '/sales/invoices', icon: ShoppingCart, badge: 'Phase 2' },
-    { name: 'Purchases & Bills', href: '/purchases/bills', icon: ShoppingBag, badge: 'Phase 2' },
+    { name: 'Sales Invoices', href: '/sales/invoices', icon: ShoppingCart },
+    { name: 'Customers', href: '/sales/customers', icon: Users },
+    { name: 'Purchase Bills', href: '/purchases/bills', icon: ShoppingBag },
+    { name: 'Suppliers', href: '/purchases/suppliers', icon: Building },
     { name: 'Inventory & Stock', href: '/inventory/products', icon: Package, badge: 'Phase 3' },
     { name: 'Accounting & Ledger', href: '/accounting/journals', icon: BookOpen, badge: 'Phase 4' },
     { name: 'GST & Taxation', href: '/gst/reports', icon: Receipt, badge: 'Phase 4' },

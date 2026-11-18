@@ -1,1 +1,1 @@
-{"root":["./src/api.types.ts","./src/auth.types.ts","./src/index.ts","./src/organization.types.ts"],"version":"5.9.3"}
+{"root":["./src/api.types.ts","./src/auth.types.ts","./src/index.ts","./src/organization.types.ts","./src/purchase.types.ts","./src/sales.types.ts"],"version":"5.9.3"}

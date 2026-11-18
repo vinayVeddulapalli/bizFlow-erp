@@ -7,9 +7,14 @@ import {
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { PrismaModule } from './common/prisma/prisma.module';
+import { SequenceModule } from './common/sequence/sequence.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { BranchModule } from './modules/branch/branch.module';
+import { CustomerModule } from './modules/customer/customer.module';
+import { SupplierModule } from './modules/supplier/supplier.module';
+import { SalesModule } from './modules/sales/sales.module';
+import { PurchaseModule } from './modules/purchase/purchase.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -23,9 +28,14 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
       isGlobal: true,
     }),
     PrismaModule,
+    SequenceModule,
     AuthModule,
     OrganizationModule,
     BranchModule,
+    CustomerModule,
+    SupplierModule,
+    SalesModule,
+    PurchaseModule,
     DashboardModule,
   ],
   providers: [
