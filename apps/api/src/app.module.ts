@@ -17,6 +17,9 @@ import { SalesModule } from './modules/sales/sales.module';
 import { PurchaseModule } from './modules/purchase/purchase.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { AccountingModule } from './modules/accounting/accounting.module';
+import { CrmModule } from './modules/crm/crm.module';
+import { HrModule } from './modules/hr/hr.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -40,6 +43,9 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     PurchaseModule,
     InventoryModule,
     AccountingModule,
+    CrmModule,
+    HrModule,
+    ReportsModule,
     DashboardModule,
   ],
   providers: [

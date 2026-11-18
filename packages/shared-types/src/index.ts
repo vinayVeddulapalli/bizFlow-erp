@@ -5,3 +5,6 @@ export * from './sales.types';
 export * from './purchase.types';
 export * from './inventory.types';
 export * from './accounting.types';
+export * from './crm.types';
+export * from './hr.types';
+export * from './reports.types';

@@ -22,6 +22,10 @@ import {
   History,
   Scale,
   Users,
+  UserCheck,
+  Calendar,
+  DollarSign,
+  BarChart3,
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -44,14 +48,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Sales Invoices', href: '/sales/invoices', icon: ShoppingCart },
     { name: 'Customers', href: '/sales/customers', icon: Users },
+    { name: 'CRM & Leads', href: '/crm/leads', icon: UserCheck },
     { name: 'Purchase Bills', href: '/purchases/bills', icon: ShoppingBag },
     { name: 'Suppliers', href: '/purchases/suppliers', icon: Building },
     { name: 'Products & Stock', href: '/inventory/products', icon: Package },
     { name: 'Stock Ledger', href: '/inventory/movements', icon: History },
     { name: 'Chart of Accounts', href: '/accounting/chart-of-accounts', icon: BookOpen },
     { name: 'Journal Vouchers', href: '/accounting/journals', icon: Receipt },
-    { name: 'Financial Reports', href: '/accounting/reports', icon: Scale },
+    { name: 'Financial Statements', href: '/accounting/reports', icon: Scale },
     { name: 'GST & Taxation', href: '/gst/reports', icon: Receipt },
+    { name: 'Staff & HR', href: '/hr/employees', icon: Users },
+    { name: 'Attendance Roster', href: '/hr/attendance', icon: Calendar },
+    { name: 'Payroll Processing', href: '/hr/payroll', icon: DollarSign },
+    { name: 'Enterprise Analytics', href: '/reports/analytics', icon: BarChart3 },
     { name: 'Settings & Branches', href: '/settings', icon: Settings },
   ];
 

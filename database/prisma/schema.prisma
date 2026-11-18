@@ -56,6 +56,13 @@ model Organization {
   documentSequences    DocumentSequence[]
   accounts             Account[]
   journalEntries       JournalEntry[]
+  leads                Lead[]
+  departments          Department[]
+  designations         Designation[]
+  employees            Employee[]
+  attendanceRecords    AttendanceRecord[]
+  leaveApplications    LeaveApplication[]
+  payrollPeriods       PayrollPeriod[]
   auditLogs            AuditLog[]
 
   @@index([gstin])
@@ -633,6 +640,229 @@ model JournalEntryLine {
   @@index([journalEntryId])
   @@index([accountId])
   @@map("journal_entry_lines")
+}
+
+// ==========================================
+// CRM & LEAD MANAGEMENT
+// ==========================================
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL
+  WON
+  LOST
+}
+
+model Lead {
+  id                    String         @id @default(uuid())
+  organizationId        String         @map("organization_id")
+  name                  String
+  companyName           String?        @map("company_name")
+  email                 String?
+  phone                 String?
+  source                String?        // e.g. "Website", "Referral", "Cold Call"
+  status                LeadStatus     @default(NEW)
+  estimatedValue        Decimal        @default(0) @map("estimated_value") @db.Decimal(15, 4)
+  notes                 String?
+  convertedToCustomerId String?        @map("converted_to_customer_id")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+
+  organization          Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  activities            LeadActivity[]
+
+  @@index([organizationId, status])
+  @@map("leads")
+}
+
+model LeadActivity {
+  id             String    @id @default(uuid())
+  leadId         String    @map("lead_id")
+  activityType   String    @map("activity_type") // CALL, MEETING, EMAIL, NOTE
+  summary        String
+  scheduledAt    DateTime? @map("scheduled_at")
+  completedAt    DateTime? @map("completed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  lead           Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@map("lead_activities")
+}
+
+// ==========================================
+// HR & PAYROLL MANAGEMENT
+// ==========================================
+
+model Department {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  name           String
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees      Employee[]
+
+  @@unique([organizationId, name])
+  @@map("departments")
+}
+
+model Designation {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  name           String
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees      Employee[]
+
+  @@unique([organizationId, name])
+  @@map("designations")
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  PROBATION
+  RESIGNED
+  TERMINATED
+}
+
+model Employee {
+  id                String             @id @default(uuid())
+  organizationId    String             @map("organization_id")
+  employeeCode      String             @map("employee_code") // e.g. "EMP-001"
+  firstName         String             @map("first_name")
+  lastName          String             @map("last_name")
+  email             String?
+  phone             String?
+  joiningDate       DateTime           @map("joining_date") @db.Date
+  status            EmploymentStatus   @default(ACTIVE)
+  departmentId      String?            @map("department_id")
+  designationId     String?            @map("designation_id")
+  
+  // Salary Structure (Decimal precision)
+  basicSalary       Decimal            @default(0) @map("basic_salary") @db.Decimal(15, 4)
+  hra               Decimal            @default(0) @db.Decimal(15, 4)
+  allowances        Decimal            @default(0) @db.Decimal(15, 4)
+  deductions        Decimal            @default(0) @db.Decimal(15, 4)
+  
+  // Statutory & Banking
+  bankAccountNumber String?            @map("bank_account_number")
+  bankIfscCode      String?            @map("bank_ifsc_code")
+  panNumber         String?            @map("pan_number")
+  uanNumber         String?            @map("uan_number")
+
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  department        Department?        @relation(fields: [departmentId], references: [id])
+  designation       Designation?       @relation(fields: [designationId], references: [id])
+  attendance        AttendanceRecord[]
+  leaveApplications LeaveApplication[]
+  payslips          Payslip[]
+
+  @@unique([organizationId, employeeCode])
+  @@map("employees")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  LEAVE
+}
+
+model AttendanceRecord {
+  id             String           @id @default(uuid())
+  organizationId String           @map("organization_id")
+  employeeId     String           @map("employee_id")
+  date           DateTime         @db.Date
+  status         AttendanceStatus @default(PRESENT)
+  checkInTime    String?          @map("check_in_time")
+  checkOutTime   String?          @map("check_out_time")
+  notes          String?
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee       Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, employeeId, date])
+  @@index([organizationId, date])
+  @@map("attendance_records")
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model LeaveApplication {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  employeeId     String       @map("employee_id")
+  leaveType      String       @map("leave_type") // CASUAL, SICK, PAID, UNPAID
+  startDate      DateTime     @map("startDate") @db.Date
+  endDate        DateTime     @map("endDate") @db.Date
+  totalDays      Int          @default(1) @map("total_days")
+  reason         String?
+  status         LeaveStatus  @default(PENDING)
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, employeeId])
+  @@map("leave_applications")
+}
+
+enum PayrollStatus {
+  DRAFT
+  APPROVED
+  PAID
+}
+
+model PayrollPeriod {
+  id              String        @id @default(uuid())
+  organizationId  String        @map("organization_id")
+  month           Int           // 1 - 12
+  year            Int           // e.g. 2026
+  status          PayrollStatus @default(DRAFT)
+  processedAt     DateTime?     @map("processed_at")
+  totalGross      Decimal       @default(0) @map("total_gross") @db.Decimal(15, 4)
+  totalDeductions Decimal       @default(0) @map("total_deductions") @db.Decimal(15, 4)
+  totalNet        Decimal       @default(0) @map("total_net") @db.Decimal(15, 4)
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payslips        Payslip[]
+
+  @@unique([organizationId, month, year])
+  @@map("payroll_periods")
+}
+
+model Payslip {
+  id              String        @id @default(uuid())
+  payrollPeriodId String        @map("payroll_period_id")
+  employeeId      String        @map("employee_id")
+  workingDays     Int           @default(30) @map("working_days")
+  presentDays     Int           @default(30) @map("present_days")
+  basicSalary     Decimal       @map("basic_salary") @db.Decimal(15, 4)
+  hra             Decimal       @db.Decimal(15, 4)
+  allowances      Decimal       @db.Decimal(15, 4)
+  grossSalary     Decimal       @map("gross_salary") @db.Decimal(15, 4)
+  deductions      Decimal       @db.Decimal(15, 4)
+  netSalary       Decimal       @map("net_salary") @db.Decimal(15, 4)
+  status          PayrollStatus @default(DRAFT)
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id], onDelete: Cascade)
+  employee        Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([payrollPeriodId, employeeId])
+  @@map("payslips")
 }
 
 // ==========================================

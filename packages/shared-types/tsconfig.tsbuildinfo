@@ -1,1 +1,1 @@
-{"root":["./src/accounting.types.ts","./src/api.types.ts","./src/auth.types.ts","./src/index.ts","./src/inventory.types.ts","./src/organization.types.ts","./src/purchase.types.ts","./src/sales.types.ts"],"version":"5.9.3"}
+{"root":["./src/accounting.types.ts","./src/api.types.ts","./src/auth.types.ts","./src/crm.types.ts","./src/hr.types.ts","./src/index.ts","./src/inventory.types.ts","./src/organization.types.ts","./src/purchase.types.ts","./src/reports.types.ts","./src/sales.types.ts"],"version":"5.9.3"}

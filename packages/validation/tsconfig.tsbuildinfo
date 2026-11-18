@@ -1,1 +1,1 @@
-{"root":["./src/accounting.schema.ts","./src/auth.schema.ts","./src/index.ts","./src/inventory.schema.ts","./src/organization.schema.ts","./src/purchase.schema.ts","./src/sales.schema.ts"],"version":"5.9.3"}
+{"root":["./src/accounting.schema.ts","./src/auth.schema.ts","./src/crm.schema.ts","./src/hr.schema.ts","./src/index.ts","./src/inventory.schema.ts","./src/organization.schema.ts","./src/purchase.schema.ts","./src/sales.schema.ts"],"version":"5.9.3"}
