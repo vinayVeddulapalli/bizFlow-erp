@@ -37,6 +37,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const activeMembership = memberships.find((m) => m.organizationId === activeOrgId) || memberships[0];
   const activeOrgName = activeMembership ? activeMembership.organizationName : 'Select Organization';
 
+  React.useEffect(() => {
+    if (!activeOrgId && activeMembership) {
+      switchOrganization(activeMembership.organizationId);
+    }
+  }, [activeOrgId, activeMembership]);
+
   interface NavItem {
     name: string;
     href: string;

@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class TenantContextMiddleware implements NestMiddleware {
   constructor(private readonly prisma: PrismaService) {}
 
-  async use(req: Request & { tenant?: any; user?: any }, _res: Response, next: NextFunction) {
+  async use(req: Request & { tenant?: any; user?: any; organizationId?: string }, _res: Response, next: NextFunction) {
     // If not authenticated yet (public routes like /auth/login), pass through
     if (!req.user || !req.user.id) {
       return next();
@@ -51,6 +51,7 @@ export class TenantContextMiddleware implements NestMiddleware {
         }
       }
 
+      req.organizationId = activeMembership.organizationId;
       req.tenant = {
         organizationId: activeMembership.organizationId,
         organizationName: activeMembership.organization.name,
