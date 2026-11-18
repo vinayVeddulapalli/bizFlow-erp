@@ -20,6 +20,7 @@ import {
   Menu,
   X,
   History,
+  Scale,
   Users,
 } from 'lucide-react';
 
@@ -32,7 +33,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const activeMembership = memberships.find((m) => m.organizationId === activeOrgId) || memberships[0];
   const activeOrgName = activeMembership ? activeMembership.organizationName : 'Select Organization';
 
-  const navigation = [
+  interface NavItem {
+    name: string;
+    href: string;
+    icon: any;
+    badge?: string;
+  }
+
+  const navigation: NavItem[] = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Sales Invoices', href: '/sales/invoices', icon: ShoppingCart },
     { name: 'Customers', href: '/sales/customers', icon: Users },
@@ -40,8 +48,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Suppliers', href: '/purchases/suppliers', icon: Building },
     { name: 'Products & Stock', href: '/inventory/products', icon: Package },
     { name: 'Stock Ledger', href: '/inventory/movements', icon: History },
-    { name: 'Accounting & Ledger', href: '/accounting/journals', icon: BookOpen, badge: 'Phase 4' },
-    { name: 'GST & Taxation', href: '/gst/reports', icon: Receipt, badge: 'Phase 4' },
+    { name: 'Chart of Accounts', href: '/accounting/chart-of-accounts', icon: BookOpen },
+    { name: 'Journal Vouchers', href: '/accounting/journals', icon: Receipt },
+    { name: 'Financial Reports', href: '/accounting/reports', icon: Scale },
+    { name: 'GST & Taxation', href: '/gst/reports', icon: Receipt },
     { name: 'Settings & Branches', href: '/settings', icon: Settings },
   ];
 
@@ -90,8 +100,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         setIsOrgDropdownOpen(false);
                       }}
                       className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-700/50 transition ${m.organizationId === activeOrgId
-                          ? 'text-teal-400 font-bold bg-slate-700/30'
-                          : 'text-slate-300'
+                        ? 'text-teal-400 font-bold bg-slate-700/30'
+                        : 'text-slate-300'
                         }`}
                     >
                       <span className="truncate">{m.organizationName}</span>
@@ -160,8 +170,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   href={item.badge ? '#' : item.href}
                   onClick={() => setIsSidebarOpen(false)}
                   className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition ${isActive
-                      ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
                     }`}
                 >
                   <div className="flex items-center gap-3">

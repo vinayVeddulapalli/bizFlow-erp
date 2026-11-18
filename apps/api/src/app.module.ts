@@ -16,6 +16,7 @@ import { SupplierModule } from './modules/supplier/supplier.module';
 import { SalesModule } from './modules/sales/sales.module';
 import { PurchaseModule } from './modules/purchase/purchase.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
+import { AccountingModule } from './modules/accounting/accounting.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -38,6 +39,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     SalesModule,
     PurchaseModule,
     InventoryModule,
+    AccountingModule,
     DashboardModule,
   ],
   providers: [

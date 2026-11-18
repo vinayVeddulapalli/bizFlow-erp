@@ -54,6 +54,8 @@ model Organization {
   purchaseInvoices     PurchaseInvoice[]
   paymentReceipts      PaymentReceipt[]
   documentSequences    DocumentSequence[]
+  accounts             Account[]
+  journalEntries       JournalEntry[]
   auditLogs            AuditLog[]
 
   @@index([gstin])
@@ -551,6 +553,86 @@ model PurchaseInvoiceItem {
   product       Product?        @relation(fields: [productId], references: [id])
 
   @@map("purchase_invoice_items")
+}
+
+// ==========================================
+// DOUBLE-ENTRY ACCOUNTING & GENERAL LEDGER
+// ==========================================
+
+enum AccountCategory {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+model Account {
+  id             String          @id @default(uuid())
+  organizationId String          @map("organization_id")
+  code           String          // e.g. "1100" (Cash), "1200" (Accounts Receivable)
+  name           String
+  category       AccountCategory
+  parentId       String?         @map("parent_id")
+  isSystem       Boolean         @default(false) @map("is_system")
+  isActive       Boolean         @default(true) @map("is_active")
+  currentBalance Decimal         @default(0) @map("current_balance") @db.Decimal(15, 4)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent         Account?        @relation("AccountHierarchy", fields: [parentId], references: [id])
+  children       Account[]       @relation("AccountHierarchy")
+  journalLines   JournalEntryLine[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId, category])
+  @@map("accounts")
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  CANCELLED
+}
+
+model JournalEntry {
+  id             String             @id @default(uuid())
+  organizationId String             @map("organization_id")
+  entryNumber    String             @map("entry_number") // e.g. "JV-2026-27-00001"
+  entryDate      DateTime           @map("entry_date") @db.Date
+  status         JournalStatus      @default(POSTED)
+  referenceType  String?            @map("reference_type") // SALES_INVOICE, PURCHASE_BILL, PAYMENT_RECEIPT, MANUAL
+  referenceId    String?            @map("reference_id")
+  narration      String
+  totalDebit     Decimal            @map("total_debit") @db.Decimal(15, 4)
+  totalCredit    Decimal            @map("total_credit") @db.Decimal(15, 4)
+  postedAt       DateTime           @default(now()) @map("posted_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  lines          JournalEntryLine[]
+
+  @@unique([organizationId, entryNumber])
+  @@index([organizationId, entryDate])
+  @@map("journal_entries")
+}
+
+model JournalEntryLine {
+  id             String       @id @default(uuid())
+  journalEntryId String       @map("journal_entry_id")
+  accountId      String       @map("account_id")
+  debit          Decimal      @default(0) @db.Decimal(15, 4)
+  credit         Decimal      @default(0) @db.Decimal(15, 4)
+  description    String?
+
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account        Account      @relation(fields: [accountId], references: [id])
+
+  @@index([journalEntryId])
+  @@index([accountId])
+  @@map("journal_entry_lines")
 }
 
 // ==========================================

@@ -200,18 +200,16 @@ export default function DashboardPage() {
 
           <Link
             href="/inventory/products"
-            className={`flex items-center gap-4 p-4 rounded-lg border transition ${
-              (data?.kpis.lowStockItems ?? 0) > 0
-                ? 'bg-amber-50/80 border-amber-300 text-amber-900 hover:bg-amber-100'
-                : 'bg-slate-50 border-slate-100 hover:border-slate-300'
-            }`}
+            className={`flex items-center gap-4 p-4 rounded-lg border transition ${(data?.kpis.lowStockItems ?? 0) > 0
+              ? 'bg-amber-50/80 border-amber-300 text-amber-900 hover:bg-amber-100'
+              : 'bg-slate-50 border-slate-100 hover:border-slate-300'
+              }`}
           >
             <div
-              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                (data?.kpis.lowStockItems ?? 0) > 0
-                  ? 'bg-amber-200 text-amber-800'
-                  : 'bg-slate-200 text-slate-600'
-              }`}
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${(data?.kpis.lowStockItems ?? 0) > 0
+                ? 'bg-amber-200 text-amber-800'
+                : 'bg-slate-200 text-slate-600'
+                }`}
             >
               <AlertTriangle className="w-5 h-5" />
             </div>

@@ -7,7 +7,7 @@ export class DocumentSequenceService {
 
   async getNextNumber(
     organizationId: string,
-    documentType: 'SALES_INVOICE' | 'PURCHASE_BILL' | 'PAYMENT_RECEIPT',
+    documentType: 'SALES_INVOICE' | 'PURCHASE_BILL' | 'PAYMENT_RECEIPT' | 'JOURNAL_VOUCHER' | string,
     customPrefix?: string
   ): Promise<string> {
     const now = new Date();
@@ -22,6 +22,7 @@ export class DocumentSequenceService {
       if (documentType === 'SALES_INVOICE') prefix = 'INV';
       else if (documentType === 'PURCHASE_BILL') prefix = 'BILL';
       else if (documentType === 'PAYMENT_RECEIPT') prefix = 'REC';
+      else if (documentType === 'JOURNAL_VOUCHER') prefix = 'JV';
       else prefix = 'DOC';
     }
 

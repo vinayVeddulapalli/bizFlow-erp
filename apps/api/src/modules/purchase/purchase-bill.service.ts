@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { DocumentSequenceService } from '../../common/sequence/sequence.service';
+import { JournalService } from '../accounting/journal.service';
 import { CreatePurchaseInvoiceInput } from '@bizflow/validation';
 import {
   calculateItemGst,
@@ -13,7 +14,8 @@ import {
 export class PurchaseBillService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly sequenceService: DocumentSequenceService
+    private readonly sequenceService: DocumentSequenceService,
+    private readonly journalService: JournalService
   ) {}
 
   async listBills(organizationId: string, supplierId?: string, status?: string) {
@@ -210,6 +212,13 @@ export class PurchaseBillService {
           }
         }
       }
+
+      // Post double-entry journal entry
+      await this.journalService.postPurchaseBillEntry(
+        organizationId,
+        { ...bill, billNumber: officialNumber },
+        tx
+      );
 
       await tx.auditLog.create({
         data: {

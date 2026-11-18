@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { DocumentSequenceService } from '../../common/sequence/sequence.service';
+import { JournalService } from '../accounting/journal.service';
 import { CreateSalesInvoiceInput } from '@bizflow/validation';
 import {
   calculateItemGst,
@@ -18,7 +19,8 @@ import {
 export class SalesInvoiceService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly sequenceService: DocumentSequenceService
+    private readonly sequenceService: DocumentSequenceService,
+    private readonly journalService: JournalService
   ) {}
 
   async listInvoices(organizationId: string, status?: string, customerId?: string) {
@@ -250,6 +252,13 @@ export class SalesInvoiceService {
           }
         }
       }
+
+      // Post double-entry journal entry
+      await this.journalService.postSalesInvoiceEntry(
+        organizationId,
+        { ...invoice, invoiceNumber: officialNumber },
+        tx
+      );
 
       // Log to audit log
       await tx.auditLog.create({
