@@ -33,7 +33,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
+ENV PORT=3002
 
 RUN apk add --no-cache curl
 RUN npm install -g pnpm@12.21.0
@@ -54,10 +54,10 @@ COPY --from=builder /app/apps/web/public ./apps/web/public
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 3002
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 \
-  CMD curl -f http://localhost:3000/ || exit 1
+  CMD curl -f http://localhost:3002/ || exit 1
 
 WORKDIR /app/apps/web
-CMD ["node_modules/.bin/next", "start", "-p", "3000"]
+CMD ["node_modules/.bin/next", "start", "-p", "3002"]

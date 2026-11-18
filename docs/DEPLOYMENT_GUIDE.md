@@ -19,7 +19,7 @@ This guide describes how to deploy, configure, secure, and maintain the **BizFlo
                ▼
 [ Reverse Proxy / Cloudflare / Nginx / Caddy ]
        │                               │
-       ▼ (Port 3000)                   ▼ (Port 4000)
+       ▼ (Port 3002)                   ▼ (Port 4000)
 [ Next.js 15 Web Frontend ]    [ NestJS REST API Backend ]
                                        │
                       ┌────────────────┼────────────────┐
@@ -64,7 +64,7 @@ All 5 core containers will start with healthchecks:
 - `bizflow-redis` (Port 6379)
 - `bizflow-minio` (Port 9000 API, 9001 Web Console)
 - `bizflow-api` (Port 4000)
-- `bizflow-web` (Port 3000)
+- `bizflow-web` (Port 3002)
 
 ### Step 3: Run Database Migrations & Initial Seed
 ```bash
@@ -84,7 +84,7 @@ docker compose exec api pnpm exec ts-node ./database/prisma/seed.ts
 # /etc/caddy/Caddyfile
 
 erp.yourdomain.com {
-    reverse_proxy localhost:3000
+    reverse_proxy localhost:3002
 }
 
 api.yourdomain.com {
@@ -109,7 +109,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/erp.yourdomain.com/privkey.pem;
 
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:3002;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

@@ -18,7 +18,7 @@ export default function SyncManagerScreen() {
   const [lastSyncResult, setLastSyncResult] = useState<SyncResult | null>(null);
 
   // Sync endpoint configuration
-  const [apiUrl, setApiUrl] = useState('http://localhost:3000/api/v1');
+  const [apiUrl, setApiUrl] = useState('http://localhost:4000/api/v1');
   const [token, setToken] = useState('offline_mobile_token');
   const [orgId, setOrgId] = useState('org_default_1');
 
@@ -117,7 +117,7 @@ export default function SyncManagerScreen() {
             style={styles.configInput}
             value={apiUrl}
             onChangeText={setApiUrl}
-            placeholder="http://localhost:3000/api/v1"
+            placeholder="http://localhost:4000/api/v1"
             placeholderTextColor="#94a3b8"
           />
         </View>
