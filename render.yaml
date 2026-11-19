@@ -1,0 +1,43 @@
+services:
+  # ========================================================
+  # 1. BizFlow API — NestJS Backend REST Service
+  # ========================================================
+  - type: web
+    name: bizflow-api
+    env: node
+    plan: free
+    region: oregon
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm run prisma:generate && pnpm run build:api
+    startCommand: pnpm run start:api
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+  # ========================================================
+  # 2. BizFlow Web — Next.js 15 Frontend Dashboard
+  # ========================================================
+  - type: web
+    name: bizflow-web
+    env: node
+    plan: free
+    region: oregon
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build:web
+    startCommand: pnpm run start:web
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        sync: false

@@ -6,6 +6,11 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
+    "build:api": "pnpm --filter @bizflow/api build",
+    "build:web": "pnpm --filter @bizflow/web build",
+    "prisma:generate": "pnpm --filter @bizflow/api prisma:generate",
+    "start:api": "pnpm --filter @bizflow/api start:prod",
+    "start:web": "pnpm --filter @bizflow/web start",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "turbo run clean && rimraf node_modules",
