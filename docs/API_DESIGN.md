@@ -177,3 +177,87 @@ https://api.bizflow.local/api/v1
 | `POST` | `/sync/push` | Submit batched outbox operations from offline client. | Yes |
 | `GET` | `/sync/conflicts` | List unresolved conflicts awaiting operator attention. | Yes |
 | `POST` | `/sync/conflicts/:id/resolve` | Resolve conflict with chosen payload resolution strategy. | Yes |
+
+---
+
+### 2.9 Module 9: POS & Retail Counter Billing
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/pos/registers` | List cash counter registers for active branch. | Yes |
+| `POST` | `/pos/registers` | Register new POS counter workstation. | Yes |
+| `GET` | `/pos/sessions/active` | Get current active POS shift session for user/register. | Yes |
+| `POST` | `/pos/sessions/open` | Open register session with opening cash float. | Yes |
+| `POST` | `/pos/sessions/close` | Reconcile and close register session (expected vs actual cash). | Yes |
+| `POST` | `/pos/checkout` | High-speed retail checkout with split-tender payment allocations. | Yes |
+| `GET` | `/pos/receipt/:id/escpos` | Raw ESC/POS thermal byte-stream for 80mm/58mm printers. | Yes |
+
+### 2.10 Module 10: Expense & Other Income Management
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/expenses` | List business expenses with category, GST, and date filters. | Yes |
+| `POST` | `/expenses` | Record new expense voucher (GST input credit claimable or non-GST). | Yes |
+| `GET` | `/expenses/categories` | List configured business expense classifications. | Yes |
+| `POST` | `/expenses/categories` | Add new nominal expense category. | Yes |
+| `GET` | `/other-income` | List non-operating income vouchers (interest, scrap, etc.). | Yes |
+| `POST` | `/other-income` | Record non-operating income transaction. | Yes |
+
+### 2.11 Module 11: Advanced Commercial Orders & Return Vouchers
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/sales/orders` | List sales orders with fulfillment status. | Yes |
+| `POST` | `/sales/orders` | Issue new customer sales order with item pricing and validity. | Yes |
+| `POST` | `/sales/orders/:id/convert-to-invoice` | Convert open sales order directly into posted sales invoice. | Yes |
+| `GET` | `/sales/delivery-challans` | List delivery challans with vehicle & e-way bill details. | Yes |
+| `POST` | `/sales/delivery-challans` | Issue new goods delivery dispatch challan. | Yes |
+| `GET` | `/sales/credit-notes` | List customer credit notes / sales returns. | Yes |
+| `POST` | `/sales/credit-notes` | Issue credit note against posted invoice. | Yes |
+| `GET` | `/purchases/orders` | List vendor purchase orders. | Yes |
+| `POST` | `/purchases/orders` | Create supplier purchase order. | Yes |
+| `GET` | `/purchases/debit-notes` | List supplier debit notes / purchase returns. | Yes |
+| `POST` | `/purchases/debit-notes` | Issue debit note against purchase bill. | Yes |
+
+### 2.12 Module 12: Advanced Inventory, Batches & Serial Tracking
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/inventory/batches` | Query active product batches with Mfg/Expiry dates and MRP. | Yes |
+| `POST` | `/inventory/batches` | Register or update batch stock allocation. | Yes |
+| `GET` | `/inventory/serials` | Lookup unique serial number lifecycle and warranty status. | Yes |
+| `POST` | `/inventory/barcodes/generate` | Generate barcode / QR code vector or image for SKU. | Yes |
+| `GET` | `/inventory/party-pricing` | Get customer-specific or supplier-specific item price matrix. | Yes |
+| `POST` | `/inventory/party-pricing` | Configure party-specific item rates and bulk volume discounts. | Yes |
+| `GET` | `/inventory/alerts/expiry` | Near-expiry stock alerts (items expiring within 30/60/90 days). | Yes |
+
+### 2.13 Module 13: Cash, Bank Accounts & Loans
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/banking/accounts` | List organization bank accounts, cash registers, and balances. | Yes |
+| `POST` | `/banking/accounts` | Link new bank current/savings or cash ledger account. | Yes |
+| `GET` | `/banking/transactions` | Passbook statement of debits, credits, and cheques. | Yes |
+| `POST` | `/banking/transactions` | Record contra deposit, bank withdrawal, or fund transfer. | Yes |
+| `POST` | `/banking/transactions/:id/reconcile` | Mark bank statement clearance with reconciliation date. | Yes |
+| `GET` | `/banking/loans` | List business loans, outstanding balances, and EMI calendars. | Yes |
+| `POST` | `/banking/loans` | Register new business loan with amortization tenure. | Yes |
+| `POST` | `/banking/loans/:id/pay-emi` | Record EMI installment repayment (split principal vs interest). | Yes |
+
+### 2.14 Module 14: Invoice Customization & Printing
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/settings/invoice-templates` | Get active tenant invoice theme, numbering prefix, and layout. | Yes |
+| `PUT` | `/settings/invoice-templates` | Update invoice header colors, logo visibility, custom fields. | Yes |
+| `GET` | `/sales/invoices/:id/print` | Render optimized print preview in A4, A5, or Thermal 80mm format. | Yes |
+
+### 2.15 Module 15: Public Online Store & Customer Ordering
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/online-store/catalog` | Public product catalog with pricing and availability. | No |
+| `POST` | `/online-store/orders` | Place online customer order with phone number and delivery address. | No |
+| `GET` | `/online-store/admin/orders` | Merchant management of incoming web orders. | Yes |
+| `POST` | `/online-store/admin/orders/:id/accept` | Accept and convert online order to sales invoice. | Yes |
+
+### 2.16 Module 16: Operations, Audit & Salespersons
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/operations/salespersons` | List salesmen and commission rates. | Yes |
+| `POST` | `/operations/salespersons` | Add new sales representative. | Yes |
+| `GET` | `/operations/reports/salesperson-sales` | Performance and sales revenue attribution per salesperson. | Yes |
+| `GET` | `/operations/audit-logs` | User activity and sensitive data mutation audit trail. | Yes |

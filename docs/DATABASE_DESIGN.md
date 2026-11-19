@@ -638,3 +638,456 @@ model AuditLog {
   @@map("audit_logs")
 }
 ```
+
+---
+
+### 3.7 Vyapar Feature Coverage Schema Extensions
+
+#### 3.7.1 POS and Retail Counter Billing
+```prisma
+model PosRegister {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  branchId       String          @map("branch_id") @db.Uuid
+  name           String          @db.VarChar(100) // e.g. "Counter 1 - Fast Checkout"
+  code           String          @db.VarChar(20)
+  isActive       Boolean         @default(true) @map("is_active")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  sessions       PosSession[]
+
+  @@unique([organizationId, code])
+  @@map("pos_registers")
+}
+
+model PosSession {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  registerId     String          @map("register_id") @db.Uuid
+  openedById     String          @map("opened_by_id") @db.Uuid
+  closedById     String?         @map("closed_by_id") @db.Uuid
+  openingFloat   Decimal         @default(0) @map("opening_float") @db.Decimal(15, 4)
+  closingCash    Decimal?        @map("closing_cash") @db.Decimal(15, 4)
+  expectedCash   Decimal?        @map("expected_cash") @db.Decimal(15, 4)
+  cashDifference Decimal?        @map("cash_difference") @db.Decimal(15, 4)
+  status         String          @default("OPEN") @db.VarChar(20) // OPEN, CLOSED
+  openedAt       DateTime        @default(now()) @map("opened_at") @db.Timestamptz
+  closedAt       DateTime?       @map("closed_at") @db.Timestamptz
+  notes          String?
+
+  register       PosRegister     @relation(fields: [registerId], references: [id])
+  payments       PosPaymentLine[]
+
+  @@map("pos_sessions")
+}
+
+model PosPaymentLine {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  sessionId      String          @map("session_id") @db.Uuid
+  invoiceId      String          @map("invoice_id") @db.Uuid
+  paymentMode    String          @map("payment_mode") @db.VarChar(30) // CASH, UPI, CARD, WALLET, CHEQUE, CREDIT
+  amount         Decimal         @db.Decimal(15, 4)
+  referenceNo    String?         @map("reference_no") @db.VarChar(100)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  session        PosSession      @relation(fields: [sessionId], references: [id])
+
+  @@map("pos_payment_lines")
+}
+```
+
+#### 3.7.2 Expense and Other Income Subsystem
+```prisma
+model ExpenseCategory {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  name           String          @db.VarChar(100)
+  code           String?         @db.VarChar(50)
+  accountId      String?         @map("account_id") @db.Uuid // Linked nominal expense ledger
+  isTaxDeductible Boolean        @default(true) @map("is_tax_deductible")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  expenses       Expense[]
+
+  @@unique([organizationId, name])
+  @@map("expense_categories")
+}
+
+model Expense {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  categoryId     String          @map("category_id") @db.Uuid
+  branchId       String          @map("branch_id") @db.Uuid
+  expenseDate    DateTime        @map("expense_date") @db.Date
+  voucherNumber  String          @map("voucher_number") @db.VarChar(50)
+  amount         Decimal         @db.Decimal(15, 4)
+  isGstClaimable Boolean         @default(false) @map("is_gst_claimable")
+  vendorGstin    String?         @map("vendor_gstin") @db.VarChar(15)
+  vendorName     String?         @map("vendor_name") @db.VarChar(150)
+  gstRate        Decimal?        @map("gst_rate") @db.Decimal(5, 2)
+  cgstAmount     Decimal         @default(0) @map("cgst_amount") @db.Decimal(15, 4)
+  sgstAmount     Decimal         @default(0) @map("sgst_amount") @db.Decimal(15, 4)
+  igstAmount     Decimal         @default(0) @map("igst_amount") @db.Decimal(15, 4)
+  paymentMode    String          @map("payment_mode") @db.VarChar(30) // CASH, BANK_TRANSFER, UPI
+  bankAccountId  String?         @map("bank_account_id") @db.Uuid
+  receiptUrl     String?         @map("receipt_url") @db.VarChar(500)
+  isRecurring    Boolean         @default(false) @map("is_recurring")
+  recurrenceUnit String?         @map("recurrence_unit") @db.VarChar(20) // MONTHLY, QUARTERLY, ANNUAL
+  notes          String?
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  category       ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  @@unique([organizationId, voucherNumber])
+  @@map("expenses")
+}
+
+model OtherIncomeCategory {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  name           String          @db.VarChar(100)
+  accountId      String?         @map("account_id") @db.Uuid
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  incomes        OtherIncome[]
+
+  @@unique([organizationId, name])
+  @@map("other_income_categories")
+}
+
+model OtherIncome {
+  id             String              @id @default(uuid()) @db.Uuid
+  organizationId String              @map("organization_id") @db.Uuid
+  categoryId     String              @map("category_id") @db.Uuid
+  incomeDate     DateTime            @map("income_date") @db.Date
+  voucherNumber  String              @map("voucher_number") @db.VarChar(50)
+  amount         Decimal             @db.Decimal(15, 4)
+  source         String?             @db.VarChar(150) // e.g. "Interest from Fixed Deposit", "Scrap Sale"
+  paymentMode    String              @map("payment_mode") @db.VarChar(30)
+  bankAccountId  String?             @map("bank_account_id") @db.Uuid
+  notes          String?
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz
+
+  category       OtherIncomeCategory @relation(fields: [categoryId], references: [id])
+
+  @@unique([organizationId, voucherNumber])
+  @@map("other_incomes")
+}
+```
+
+#### 3.7.3 Orders, Delivery Challans, Credit & Debit Notes
+```prisma
+model SalesOrder {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  branchId       String          @map("branch_id") @db.Uuid
+  customerId     String          @map("customer_id") @db.Uuid
+  orderNumber    String          @map("order_number") @db.VarChar(50)
+  orderDate      DateTime        @map("order_date") @db.Date
+  validUntil     DateTime?       @map("valid_until") @db.Date
+  status         String          @default("PENDING") @db.VarChar(30) // PENDING, PARTIALLY_FULFILLED, COMPLETED, CANCELLED
+  totalTaxable   Decimal         @map("total_taxable") @db.Decimal(15, 4)
+  totalTax       Decimal         @map("total_tax") @db.Decimal(15, 4)
+  totalAmount    Decimal         @map("total_amount") @db.Decimal(15, 4)
+  convertedInvoiceId String?     @map("converted_invoice_id") @db.Uuid
+  notes          String?
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  lines          SalesOrderLine[]
+
+  @@unique([organizationId, orderNumber])
+  @@map("sales_orders")
+}
+
+model SalesOrderLine {
+  id             String          @id @default(uuid()) @db.Uuid
+  salesOrderId   String          @map("sales_order_id") @db.Uuid
+  productId      String          @map("product_id") @db.Uuid
+  quantity       Decimal         @db.Decimal(12, 4)
+  fulfilledQty   Decimal         @default(0) @map("fulfilled_qty") @db.Decimal(12, 4)
+  unitPrice      Decimal         @map("unit_price") @db.Decimal(15, 4)
+  taxRate        Decimal         @map("tax_rate") @db.Decimal(5, 2)
+  taxAmount      Decimal         @map("tax_amount") @db.Decimal(15, 4)
+  lineTotal      Decimal         @map("line_total") @db.Decimal(15, 4)
+
+  order          SalesOrder      @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+
+  @@map("sales_order_lines")
+}
+
+model PurchaseOrder {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  branchId       String          @map("branch_id") @db.Uuid
+  supplierId     String          @map("supplier_id") @db.Uuid
+  orderNumber    String          @map("order_number") @db.VarChar(50)
+  orderDate      DateTime        @map("order_date") @db.Date
+  expectedDate   DateTime?       @map("expected_date") @db.Date
+  status         String          @default("PLACED") @db.VarChar(30) // PLACED, RECEIVED_PARTIAL, RECEIVED_FULL, CANCELLED
+  totalAmount    Decimal         @map("total_amount") @db.Decimal(15, 4)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([organizationId, orderNumber])
+  @@map("purchase_orders")
+}
+
+model DeliveryChallan {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  branchId       String          @map("branch_id") @db.Uuid
+  customerId     String          @map("customer_id") @db.Uuid
+  challanNumber  String          @map("challan_number") @db.VarChar(50)
+  challanDate    DateTime        @map("challan_date") @db.Date
+  vehicleNumber  String?         @map("vehicle_number") @db.VarChar(30)
+  eWayBillNumber String?         @map("eway_bill_number") @db.VarChar(50)
+  status         String          @default("DISPATCHED") @db.VarChar(30) // DISPATCHED, DELIVERED, RETURNED, INVOICED
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([organizationId, challanNumber])
+  @@map("delivery_challans")
+}
+
+model CreditNote {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  branchId       String          @map("branch_id") @db.Uuid
+  customerId     String          @map("customer_id") @db.Uuid
+  noteNumber     String          @map("note_number") @db.VarChar(50)
+  noteDate       DateTime        @map("note_date") @db.Date
+  originalInvoiceId String?      @map("original_invoice_id") @db.Uuid
+  reasonCode     String          @map("reason_code") @db.VarChar(50) // SALES_RETURN, POST_DISCOUNT, DEFICIENT_SERVICE
+  taxableAmount  Decimal         @map("taxable_amount") @db.Decimal(15, 4)
+  taxAmount      Decimal         @map("tax_amount") @db.Decimal(15, 4)
+  totalAmount    Decimal         @map("total_amount") @db.Decimal(15, 4)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([organizationId, noteNumber])
+  @@map("credit_notes")
+}
+
+model DebitNote {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  branchId       String          @map("branch_id") @db.Uuid
+  supplierId     String          @map("supplier_id") @db.Uuid
+  noteNumber     String          @map("note_number") @db.VarChar(50)
+  noteDate       DateTime        @map("note_date") @db.Date
+  originalBillId String?         @map("original_bill_id") @db.Uuid
+  reasonCode     String          @map("reason_code") @db.VarChar(50) // PURCHASE_RETURN, RATE_CORRECTION
+  taxableAmount  Decimal         @map("taxable_amount") @db.Decimal(15, 4)
+  taxAmount      Decimal         @map("tax_amount") @db.Decimal(15, 4)
+  totalAmount    Decimal         @map("total_amount") @db.Decimal(15, 4)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([organizationId, noteNumber])
+  @@map("debit_notes")
+}
+```
+
+#### 3.7.4 Advanced Inventory: Batches, Serials, MRP & Unit Conversion
+```prisma
+model ProductBatch {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  productId      String          @map("product_id") @db.Uuid
+  warehouseId    String          @map("warehouse_id") @db.Uuid
+  batchNumber    String          @map("batch_number") @db.VarChar(100)
+  mfgDate        DateTime?       @map("mfg_date") @db.Date
+  expiryDate     DateTime?       @map("expiry_date") @db.Date
+  mrp            Decimal         @db.Decimal(15, 4)
+  purchasePrice  Decimal         @map("purchase_price") @db.Decimal(15, 4)
+  salePrice      Decimal         @map("sale_price") @db.Decimal(15, 4)
+  currentStock   Decimal         @default(0) @map("current_stock") @db.Decimal(12, 4)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([organizationId, productId, batchNumber, warehouseId])
+  @@index([organizationId, expiryDate])
+  @@map("product_batches")
+}
+
+model ProductSerial {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  productId      String          @map("product_id") @db.Uuid
+  warehouseId    String          @map("warehouse_id") @db.Uuid
+  serialNumber   String          @map("serial_number") @db.VarChar(100)
+  status         String          @default("IN_STOCK") @db.VarChar(20) // IN_STOCK, SOLD, DEFECTIVE, RETURNED
+  purchaseBillId String?         @map("purchase_bill_id") @db.Uuid
+  salesInvoiceId String?         @map("sales_invoice_id") @db.Uuid
+  warrantyExpiry DateTime?       @map("warranty_expiry") @db.Date
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([organizationId, productId, serialNumber])
+  @@map("product_serials")
+}
+
+model UnitConversion {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  productId      String          @map("product_id") @db.Uuid
+  primaryUnitId  String          @map("primary_unit_id") @db.Uuid   // e.g. Box
+  secondaryUnitId String         @map("secondary_unit_id") @db.Uuid // e.g. Pcs
+  conversionRatio Decimal        @map("conversion_ratio") @db.Decimal(12, 4) // e.g. 1 Box = 10 Pcs
+
+  @@unique([organizationId, productId])
+  @@map("unit_conversions")
+}
+
+model PartyPriceMatrix {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  partyType      String          @map("party_type") @db.VarChar(20) // CUSTOMER, SUPPLIER
+  partyId        String          @map("party_id") @db.Uuid
+  productId      String          @map("product_id") @db.Uuid
+  specialPrice   Decimal         @map("special_price") @db.Decimal(15, 4)
+  minOrderQty    Decimal?        @map("min_order_qty") @db.Decimal(12, 4)
+  discountPct    Decimal?        @map("discount_pct") @db.Decimal(5, 2)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@unique([organizationId, partyId, productId])
+  @@map("party_price_matrices")
+}
+```
+
+#### 3.7.5 Cash, Bank Ledgers & Loan Accounts
+```prisma
+model BankAccount {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  bankName       String          @map("bank_name") @db.VarChar(100)
+  accountNumber  String          @map("account_number") @db.VarChar(50)
+  ifscCode       String          @map("ifsc_code") @db.VarChar(20)
+  branchName     String?         @map("branch_name") @db.VarChar(100)
+  accountType    String          @map("account_type") @db.VarChar(30) // CURRENT, SAVINGS, OVERDRAFT, CASH_CREDIT
+  upiId          String?         @map("upi_id") @db.VarChar(100)
+  openingBalance Decimal         @default(0) @map("opening_balance") @db.Decimal(15, 4)
+  currentBalance Decimal         @default(0) @map("current_balance") @db.Decimal(15, 4)
+  isDefault      Boolean         @default(false) @map("is_default")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  transactions   BankTransaction[]
+
+  @@unique([organizationId, accountNumber])
+  @@map("bank_accounts")
+}
+
+model BankTransaction {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  bankAccountId  String          @map("bank_account_id") @db.Uuid
+  transactionDate DateTime       @map("transaction_date") @db.Date
+  type           String          @db.VarChar(20) // DEPOSIT, WITHDRAWAL, TRANSFER, CHEQUE, CHARGE, INTEREST
+  amount         Decimal         @db.Decimal(15, 4)
+  balanceAfter   Decimal         @map("balance_after") @db.Decimal(15, 4)
+  referenceNo    String?         @map("reference_no") @db.VarChar(100)
+  chequeNumber   String?         @map("cheque_number") @db.VarChar(30)
+  isReconciled   Boolean         @default(false) @map("is_reconciled")
+  reconciledAt   DateTime?       @map("reconciled_at") @db.Timestamptz
+  notes          String?
+
+  account        BankAccount     @relation(fields: [bankAccountId], references: [id])
+
+  @@map("bank_transactions")
+}
+
+model LoanAccount {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  lenderName     String          @map("lender_name") @db.VarChar(100) // e.g. "HDFC Bank Business Loan"
+  loanNumber     String          @map("loan_number") @db.VarChar(50)
+  principalAmount Decimal        @map("principal_amount") @db.Decimal(15, 4)
+  interestRatePct Decimal        @map("interest_rate_pct") @db.Decimal(5, 2)
+  tenureMonths   Int             @map("tenure_months")
+  emiAmount      Decimal         @map("emi_amount") @db.Decimal(15, 4)
+  disbursedDate  DateTime        @map("disbursed_date") @db.Date
+  outstandingBalance Decimal     @map("outstanding_balance") @db.Decimal(15, 4)
+  status         String          @default("ACTIVE") @db.VarChar(20) // ACTIVE, CLOSED
+
+  emiSchedules   LoanEmiSchedule[]
+
+  @@unique([organizationId, loanNumber])
+  @@map("loan_accounts")
+}
+
+model LoanEmiSchedule {
+  id             String          @id @default(uuid()) @db.Uuid
+  loanAccountId  String          @map("loan_account_id") @db.Uuid
+  installmentNo  Int             @map("installment_no")
+  dueDate        DateTime        @map("due_date") @db.Date
+  principalPart  Decimal         @map("principal_part") @db.Decimal(15, 4)
+  interestPart   Decimal         @map("interest_part") @db.Decimal(15, 4)
+  totalEmi       Decimal         @map("total_emi") @db.Decimal(15, 4)
+  isPaid         Boolean         @default(false) @map("is_paid")
+  paidDate       DateTime?       @map("paid_date") @db.Date
+
+  loan           LoanAccount     @relation(fields: [loanAccountId], references: [id], onDelete: Cascade)
+
+  @@map("loan_emi_schedules")
+}
+```
+
+#### 3.7.6 Invoice Customization & Online Store
+```prisma
+model InvoiceTemplateConfig {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @unique @map("organization_id") @db.Uuid
+  templateTheme  String          @default("MODERN_TEAL") @map("template_theme") @db.VarChar(50)
+  paperSize      String          @default("A4") @map("paper_size") @db.VarChar(20) // A4, A5, THERMAL_80MM, THERMAL_58MM
+  showLogo       Boolean         @default(true) @map("show_logo")
+  showSignature  Boolean         @default(true) @map("show_signature")
+  showQrCode     Boolean         @default(true) @map("show_qr_code")
+  headerColor    String          @default("#0d9488") @map("header_color") @db.VarChar(20)
+  customTerms    String?         @map("custom_terms")
+  invoicePrefix  String          @default("INV") @map("invoice_prefix") @db.VarChar(20)
+  customField1Title String?      @map("custom_field1_title") @db.VarChar(50)
+  customField2Title String?      @map("custom_field2_title") @db.VarChar(50)
+
+  @@map("invoice_template_configs")
+}
+
+model OnlineOrder {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  orderNumber    String          @map("order_number") @db.VarChar(50)
+  customerName   String          @map("customer_name") @db.VarChar(150)
+  customerPhone  String          @map("customer_phone") @db.VarChar(20)
+  customerAddress String?        @map("customer_address")
+  totalAmount    Decimal         @map("total_amount") @db.Decimal(15, 4)
+  status         String          @default("NEW") @db.VarChar(30) // NEW, ACCEPTED, DISPATCHED, COMPLETED, REJECTED
+  convertedInvoiceId String?     @map("converted_invoice_id") @db.Uuid
+  placedAt       DateTime        @default(now()) @map("placed_at") @db.Timestamptz
+
+  lines          OnlineOrderItem[]
+
+  @@unique([organizationId, orderNumber])
+  @@map("online_orders")
+}
+
+model OnlineOrderItem {
+  id             String          @id @default(uuid()) @db.Uuid
+  onlineOrderId  String          @map("online_order_id") @db.Uuid
+  productId      String          @map("product_id") @db.Uuid
+  productName    String          @map("product_name") @db.VarChar(255)
+  quantity       Decimal         @db.Decimal(12, 4)
+  unitPrice      Decimal         @map("unit_price") @db.Decimal(15, 4)
+  lineTotal      Decimal         @map("line_total") @db.Decimal(15, 4)
+
+  order          OnlineOrder     @relation(fields: [onlineOrderId], references: [id], onDelete: Cascade)
+
+  @@map("online_order_items")
+}
+
+model Salesperson {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  name           String          @db.VarChar(150)
+  phone          String          @db.VarChar(20)
+  email          String?         @db.VarChar(255)
+  commissionPct  Decimal         @default(0) @map("commission_pct") @db.Decimal(5, 2)
+  isActive       Boolean         @default(true) @map("is_active")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("salespersons")
+}
+```

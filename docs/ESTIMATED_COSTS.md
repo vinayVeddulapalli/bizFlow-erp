@@ -77,3 +77,20 @@ No paid third-party service (e.g., Twilio for SMS, AWS SES for high-volume email
 2. Presenting at least two competitive pricing options.
 3. Providing a zero-cost open-source fallback or manual workflow option.
 4. Obtaining explicit approval from the project owner before integration.
+
+---
+
+## 6. Vyapar Integration Cost Matrix & Zero-Cost Fallbacks
+
+The table below outlines external integration services required for advanced Vyapar capabilities, their financial costs, prerequisites, and our built-in zero-cost fallback strategies:
+
+| Integration Capability | Provider / Service | Estimated Cost (INR) | Mandatory Setup Prerequisites | Zero-Cost In-House Fallback (Recommended First) |
+| :--- | :--- | :--- | :--- | :--- |
+| **WhatsApp Notifications & PDF Sharing** | WhatsApp Cloud API (Meta) | ~₹0.35 to ₹0.75 per conversation | Meta Business Manager verification, Business Phone Number | **Direct `wa.me/` Universal Links**: Generates one-click WhatsApp web/app sharing with pre-filled message & bill link. **₹0 cost, 0 setup**. |
+| **Transactional SMS (Payment Reminders)** | MSG91 / Fast2SMS / Twilio | ~₹0.15 - ₹0.25 / SMS + ₹5,900 one-time DLT | TRAI DLT Registration (India), Approved Headers & SMS Templates | **Automated In-App Alert Badges & Transactional Email** (via Brevo/Resend Free Tier). **₹0 cost**. |
+| **Dynamic UPI QR & Payment Gateway** | Razorpay / Cashfree / Pine Labs | 0% for UPI; 1.5% - 2% for Credit Cards | Current Bank Account KYC, Merchant Onboarding | **Static UPI Payment QR (BharatPe / BHIM Standard)** embedded directly onto printed invoices & receipts. **₹0 fees, instant direct settlement**. |
+| **OCR Purchase Bill Scanning** | AWS Textract / Google Document AI | ~₹1.20 - ₹1.80 per invoice page | AWS / GCP Cloud Account with active credit card | **Bulk Excel / CSV Bill Importer & Tally XML Importer**. **₹0 cost**. |
+| **GPS Field Staff Tracking** | Google Maps Geolocation & Directions | $5.00 per 1,000 queries (after $200/mo credit) | Google Cloud Platform API billing key | **HTML5 Browser Geolocation API + OpenStreetMap / Leaflet FOSS tiles**. **₹0 cost**. |
+
+### 6.1 Formal Approval Requirement
+In accordance with Rule 9, **none of the above paid providers will be activated in production without the user's explicit prior approval**. The application is architected so that all core billing, inventory, and accounting operations remain 100% operational using the zero-cost fallbacks.

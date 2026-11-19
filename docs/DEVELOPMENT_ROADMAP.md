@@ -130,3 +130,97 @@ flowchart LR
   - Centralized monitoring, logging, and error tracking (Sentry + structured Winston logs).
   - Deployment runbooks, disaster recovery procedures, and user manual documentation.
 * **Exit Criteria**: 100% test pass rate; zero critical security vulnerabilities; sub-100ms API response time at p95; successful disaster recovery restoration test.
+
+---
+
+## 3. Vyapar Extended Feature Coverage & Architecture Integration
+
+To achieve broad commercial feature parity with Vyapar while providing superior ERP capabilities, BizFlow ERP incorporates the following extended business modules across the execution phases.
+
+### 3.1 Module Mapping to Phases
+
+```mermaid
+flowchart TD
+    subgraph Core_Billing_Inventory["Core Commercial Engine (Prioritized First)"]
+        A_POS["A. POS & Retail Counter Billing\n(Barcode, Thermal, Split Pay)"]
+        B_Exp["B. Expenses & Other Income\n(GST/Non-GST, Recurring)"]
+        C_AdvSales["C. Advanced Sales & Purchase\n(Orders, Challans, Notes, Aging)"]
+        D_AdvInv["D. Advanced Inventory\n(Batches, Serials, MRP, Dual Units)"]
+        E_CashBank["E. Cash, Bank & Loans\n(Cheques, Passbook, Loans, EMI)"]
+        F_Templates["F. Invoice Customization & Printing\n(Thermal, A4/A5, Dynamic Prefix)"]
+    end
+
+    subgraph Operations_Growth["Commercial Operations & Digital Sales (Phased Next)"]
+        G_Store["G. Online Store & Ordering\n(Public Catalog, Web Orders)"]
+        J_Ops["J. Advanced Operations\n(Salesmen, GPS Readiness, Branch BI)"]
+        I_Data["I. Data Portability & Tools\n(Excel/Tally Import-Export, OCR)"]
+    end
+
+    subgraph Integrations["Optional External Integrations (Subject to Cost Approval)"]
+        H_Comm["H. Communication & Alerts\n(WhatsApp Cloud, SMS DLT, Payment QR)"]
+    end
+
+    D_AdvInv --> A_POS
+    F_Templates --> A_POS
+    E_CashBank --> A_POS
+    C_AdvSales --> B_Exp
+    C_AdvSales --> E_CashBank
+    Core_Billing_Inventory --> G_Store
+    Core_Billing_Inventory --> J_Ops
+    Core_Billing_Inventory --> I_Data
+    Core_Billing_Inventory -.-> H_Comm
+```
+
+| Module Category | Scope & Key Capabilities | Phase Placement | Core vs External |
+| :--- | :--- | :--- | :--- |
+| **A. POS & Retail Billing** | Counter billing, barcode scan/gen, QR, thermal printing (ESC/POS), weighing scale readiness, cash register, multi-mode split pay. | **Phase 2.1** | **Core In-House** |
+| **B. Expense & Income** | Expense/income categories, GST & non-GST expense vouchers, recurring expenses, automated P&L reflection. | **Phase 4.1** | **Core In-House** |
+| **C. Advanced Sales & Purchase** | Proforma invoices, Sales Orders, Purchase Orders, Delivery Challans, Credit/Debit notes, partial pay, aging & due dates. | **Phase 2.2** | **Core In-House** |
+| **D. Advanced Inventory** | Batch tracking with Mfg/Expiry, Serial tracking, MRP management, primary/secondary dual units, price matrix, free quantities. | **Phase 3.1** | **Core In-House** |
+| **E. Cash, Bank & Loans** | Multiple bank ledgers, cash-in-hand register, cheque clearance, bank reconciliation, loan accounts & EMI schedules. | **Phase 4.2** | **Core In-House** |
+| **F. Invoice Customization** | Dynamic prefixes, custom templates (Modern, Classic, Minimal), A4/A5/Thermal formats, custom fields, PDF engine. | **Phase 2.3** | **Core In-House** |
+| **G. Online Store** | Public digital product catalog, customer mobile/web ordering, catalog pricing, one-click order-to-invoice conversion. | **Phase 5.1** | **Core In-House** |
+| **H. Communication & Reminders** | In-app notification queue & webhooks. External WhatsApp Cloud API, SMS (DLT), and payment gateway dynamic UPI QR. | **Phase 5.2** | **External Paid (Gated)** |
+| **I. Data Import/Export & Backup** | Excel & CSV import/export, Tally XML import/export, automated database dump/restore. OCR purchase scanning. | **Phase 7.1** | **Core + Optional OCR** |
+| **J. Advanced Operations** | Salesman commission tracking, salesperson sales analytics, branch-wise comparative reports, GPS field tracking schema. | **Phase 5.3** | **Core + Optional GPS** |
+
+---
+
+### 3.2 Inter-Module Dependency Matrix
+
+1. **POS Billing (A)** depends on:
+   - **Product Master & Barcode/Batch (D)**: For item pricing, barcodes, and inventory deduction.
+   - **Cash & Bank (E)**: For register float reconciliation and tender deposits.
+   - **Invoice Customization (F)**: For thermal ESC/POS receipt generation.
+2. **Advanced Sales & Purchase (C)** depends on:
+   - **Dual Units & Batches (D)**: For unit conversion and batch allocation during order fulfillment.
+   - **Double-Entry Accounting (Phase 4)**: For automated AP/AR, Credit/Debit note postings.
+3. **Cash, Bank & Loans (E)** depends on:
+   - **Double-Entry General Ledger (Phase 4)**: For contra entries, bank reconciliation, and interest amortization.
+4. **Online Store (G)** depends on:
+   - **Product Catalog (D)**: For public listing, real-time stock availability, and MRP.
+   - **Sales Invoicing (Phase 2)**: For converting customer web orders into posted tax invoices.
+5. **Communication & Reminders (H)** depends on:
+   - **Invoice & Due Date Engine (C)**: For payment reminder triggers and outstanding balance notifications.
+
+---
+
+### 3.3 Core In-House vs External Paid Integrations Boundary
+
+To keep development frugal and independent of recurring monthly SaaS subscriptions:
+* **Strict Core Boundary (100% In-House, Zero Per-Transaction Cost)**:
+  - Thermal ESC/POS receipt rendering (raw ESC/POS byte streams).
+  - Barcode & QR code generation (`bwip-js` / `qrcode` node packages).
+  - Bank transaction management and reconciliation logic.
+  - A4, A5, and 80mm/58mm PDF generation.
+  - Batch, Serial, MRP, and Dual-unit math.
+  - Excel/CSV bulk import and export parsers.
+  - Public online ordering web portal.
+* **External Integration Boundary (Requires Specific Setup, Cost Identification & User Approval)**:
+  - **WhatsApp Cloud API**: Requires Meta Business verification and per-template conversation fees.
+  - **SMS Messaging**: Requires Indian DLT registration (TRAI entity registration) and SMS gateway credits.
+  - **UPI Dynamic QR / Payment Gateway**: Requires merchant account credentials (Razorpay / Cashfree / Pine Labs).
+  - **OCR Bill Scanning**: Requires cloud OCR document parsers (AWS Textract / Google Document AI).
+  - **GPS Live Tracking**: Requires Google Maps Geolocation / Distance Matrix API billing.
+
+*Rule: External paid integrations will never be enabled without prior explicit approval and verified sandbox testing.*
