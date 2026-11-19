@@ -26,6 +26,7 @@ import {
   Calendar,
   DollarSign,
   BarChart3,
+  Store,
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -52,6 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navigation: NavItem[] = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'POS Counter Billing', href: '/pos', icon: Store },
     { name: 'Sales Invoices', href: '/sales/invoices', icon: ShoppingCart },
     { name: 'Customers', href: '/sales/customers', icon: Users },
     { name: 'CRM & Leads', href: '/crm/leads', icon: UserCheck },
