@@ -34,6 +34,7 @@ Thumbs.db
 # IDE configuration
 .vscode/
 .idea/
+*.tsbuildinfo
 
 # Local databases and uploads
 database/data/
