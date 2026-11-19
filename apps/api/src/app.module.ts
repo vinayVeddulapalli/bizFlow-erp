@@ -27,6 +27,7 @@ import { ExpenseModule } from './modules/expense/expense.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { BankingModule } from './modules/banking/banking.module';
 import { StoreModule } from './modules/store/store.module';
+import { DataTransferModule } from './modules/data-transfer/data-transfer.module';
 import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesAndPermissionsGuard } from './common/guards/roles.guard';
@@ -59,6 +60,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     OrdersModule,
     BankingModule,
     StoreModule,
+    DataTransferModule,
   ],
   providers: [
     {
