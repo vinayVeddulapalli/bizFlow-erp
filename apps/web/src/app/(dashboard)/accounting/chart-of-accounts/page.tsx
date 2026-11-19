@@ -61,7 +61,7 @@ export default function ChartOfAccountsPage() {
       resetForm();
     },
     onError: (err: any) => {
-      setModalError(err.response?.data?.message || 'Failed to create ledger account.');
+      setModalError(err.message || err.response?.data?.message || 'Failed to create ledger account.');
     },
   });
 

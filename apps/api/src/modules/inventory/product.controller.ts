@@ -52,6 +52,24 @@ export class ProductController {
     @ActiveTenant() tenant: TenantContext,
     @Body() body: any
   ) {
+    if (body.sellingPrice === undefined && body.salePrice !== undefined) {
+      body.sellingPrice = typeof body.salePrice === 'string' ? parseFloat(body.salePrice) : body.salePrice;
+    }
+    if (typeof body.purchasePrice === 'string') {
+      body.purchasePrice = parseFloat(body.purchasePrice);
+    }
+    if (typeof body.taxRate === 'string') {
+      body.taxRate = parseFloat(body.taxRate);
+    }
+    if (typeof body.minStockLevel === 'string') {
+      body.minStockLevel = parseFloat(body.minStockLevel);
+    }
+    if (typeof body.openingStock === 'string') {
+      body.openingStock = parseFloat(body.openingStock);
+    }
+    if (!body.openingWarehouseId && body.warehouseId) {
+      body.openingWarehouseId = body.warehouseId;
+    }
     const validated = createProductSchema.parse(body);
     return this.productService.createProduct(tenant.organizationId, validated);
   }

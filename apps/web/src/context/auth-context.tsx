@@ -57,18 +57,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = (tokens: { accessToken: string }, userData: AuthenticatedUser) => {
+  const login = (tokens: { accessToken: string }, userData: AuthenticatedUser, initialMemberships?: UserMembership[]) => {
     setClientAuth(tokens.accessToken, userData.activeOrganizationId);
     setUser(userData);
+    if (initialMemberships && initialMemberships.length > 0) {
+      setMemberships(initialMemberships);
+    }
     setActiveOrgId(userData.activeOrganizationId || null);
-    router.push('/dashboard');
+    refreshProfile().finally(() => {
+      router.push('/dashboard');
+    });
   };
 
-  const register = (tokens: { accessToken: string }, userData: AuthenticatedUser) => {
+  const register = (tokens: { accessToken: string }, userData: AuthenticatedUser, initialMemberships?: UserMembership[]) => {
     setClientAuth(tokens.accessToken, userData.activeOrganizationId);
     setUser(userData);
+    if (initialMemberships && initialMemberships.length > 0) {
+      setMemberships(initialMemberships);
+    }
     setActiveOrgId(userData.activeOrganizationId || null);
-    router.push('/dashboard');
+    refreshProfile().finally(() => {
+      router.push('/dashboard');
+    });
   };
 
   const logout = async () => {

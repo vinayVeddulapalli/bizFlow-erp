@@ -2,162 +2,59 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Precomputed Argon2id hash for 'Password@123'
 const PASSWORD_HASH =
   '$argon2id$v=19$m=65536,t=3,p=4$d1bNOS1zGm1T3PtyX74DJQ$vAeXinLIype6JF/06I4H0MXiVhtjm5GvoCCFsJp7sZ8';
 
-async function main() {
-  console.log('--- Starting Comprehensive BizFlow ERP Seeding ---');
+async function seedOrganization(org: any, roleMap: Record<string, string>) {
+  console.log(`\n=============================================================`);
+  console.log(`🌱 Seeding dummy data for Organization: "${org.name}" (${org.id})`);
+  console.log(`=============================================================`);
 
-  // 1. Roles
-  const roles = [
-    {
-      name: 'SuperAdmin',
-      description: 'System Super Administrator with unconstrained capabilities across all modules',
-      permissions: ['*'],
-    },
-    {
-      name: 'Admin',
-      description: 'Tenant Administrator with full access to company records and configurations',
-      permissions: ['admin:*', 'sales:*', 'purchase:*', 'inventory:*', 'accounting:*', 'hr:*', 'crm:*'],
-    },
-    {
-      name: 'Accountant',
-      description: 'Senior Accountant with access to books, ledger entries, bank reconciliation, and tax filings',
-      permissions: ['accounting:*', 'sales:read', 'purchase:read', 'reports:*'],
-    },
-    {
-      name: 'InventoryManager',
-      description: 'Warehouse supervisor with access to stock counts, adjustments, transfers, and inventory audits',
-      permissions: ['inventory:*', 'purchase:read', 'sales:read'],
-    },
-    {
-      name: 'SalesExecutive',
-      description: 'Sales and CRM representative for invoicing, quotations, lead pipeline, and receivables tracking',
-      permissions: ['sales:*', 'crm:*', 'customer:*'],
-    },
-  ];
-
-  const roleMap: Record<string, string> = {};
-  for (const r of roles) {
-    let role = await prisma.role.findFirst({ where: { name: r.name } });
-    if (!role) {
-      role = await prisma.role.create({
-        data: {
-          name: r.name,
-          description: r.description,
-          permissions: r.permissions,
-        },
-      });
-    }
-    roleMap[r.name] = role.id;
-  }
-  console.log('✓ System roles verified');
-
-  // 2. Admin User
-  let admin = await prisma.user.findUnique({
-    where: { email: 'admin@bizflow.local' },
-  });
-
-  if (!admin) {
-    admin = await prisma.user.create({
-      data: {
-        email: 'admin@bizflow.local',
-        passwordHash: PASSWORD_HASH,
-        fullName: 'Administrator',
-        isSuperAdmin: true,
-      },
-    });
-  }
-  console.log(`✓ Admin user verified: ${admin.email}`);
-
-  // 3. Organization (Acme Enterprises)
-  let org = await prisma.organization.findFirst({
-    where: { legalName: 'Acme Enterprises Private Limited' },
-  });
-
-  if (!org) {
-    org = await prisma.organization.create({
-      data: {
-        name: 'Acme Enterprises',
-        legalName: 'Acme Enterprises Private Limited',
-        gstin: '27AABCU9603R1ZM',
-        pan: 'AABCU9603R',
-        email: 'accounts@acmeenterprises.com',
-        phone: '+919820012345',
-        currency: 'INR',
-        fiscalYearStartMonth: 4,
-        address: 'B-402, Trade World, Senapati Bapat Marg, Lower Parel',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        stateCode: '27',
-        pincode: '400013',
-      },
-    });
-  }
-  console.log(`✓ Organization verified: ${org.name} (${org.id})`);
-
-  // 4. Organization Membership
-  const membership = await prisma.organizationMember.findFirst({
-    where: {
-      userId: admin.id,
-      organizationId: org.id,
-    },
-  });
-
-  if (!membership) {
-    await prisma.organizationMember.create({
-      data: {
-        userId: admin.id,
-        organizationId: org.id,
-        roleId: roleMap['SuperAdmin'],
-        isDefault: true,
-      },
-    });
-  }
-  console.log('✓ SuperAdmin membership verified');
-
-  // 5. Operating Branches
+  // 1. Operating Branches
   let mainBranch = await prisma.branch.findFirst({
-    where: { organizationId: org.id, code: 'HQ-MUM' },
+    where: { organizationId: org.id },
   });
   if (!mainBranch) {
     mainBranch = await prisma.branch.create({
       data: {
         organizationId: org.id,
         name: 'Head Office (Mumbai)',
-        code: 'HQ-MUM',
+        code: 'HQ-01',
         gstin: '27AABCU9603R1ZM',
+        addressLine1: 'B-402, Trade World, Lower Parel',
+        city: 'Mumbai',
         state: 'Maharashtra',
         stateCode: '27',
-        address: 'B-402, Trade World, Lower Parel, Mumbai 400013',
-        isHeadOffice: true,
+        postalCode: '400013',
+        isMainBranch: true,
       },
     });
   }
 
-  let puneBranch = await prisma.branch.findFirst({
-    where: { organizationId: org.id, code: 'BR-PUN' },
+  let secondaryBranch = await prisma.branch.findFirst({
+    where: { organizationId: org.id, code: 'BR-02' },
   });
-  if (!puneBranch) {
-    puneBranch = await prisma.branch.create({
+  if (!secondaryBranch) {
+    secondaryBranch = await prisma.branch.create({
       data: {
         organizationId: org.id,
         name: 'Branch Office (Pune)',
-        code: 'BR-PUN',
+        code: 'BR-02',
         gstin: '27AABCU9603R1ZM',
+        addressLine1: 'Tech Centre, Hinjewadi Phase 1',
+        city: 'Pune',
         state: 'Maharashtra',
         stateCode: '27',
-        address: 'Tech Centre, Hinjewadi Phase 1, Pune 411057',
-        isHeadOffice: false,
+        postalCode: '411057',
+        isMainBranch: false,
       },
     });
   }
-  console.log('✓ Branches verified (Mumbai & Pune)');
+  console.log(`✓ Branches verified (${mainBranch.name}, ${secondaryBranch.name})`);
 
-  // 6. Warehouses
+  // 2. Warehouses
   let mainWarehouse = await prisma.warehouse.findFirst({
-    where: { organizationId: org.id, code: 'WH-MAIN' },
+    where: { organizationId: org.id, isDefault: true },
   });
   if (!mainWarehouse) {
     mainWarehouse = await prisma.warehouse.create({
@@ -165,31 +62,29 @@ async function main() {
         organizationId: org.id,
         branchId: mainBranch.id,
         name: 'Central Warehouse (Bhiwandi)',
-        code: 'WH-MAIN',
-        address: 'Bhiwandi Logistics Hub, Shed 4B, Thane 421302',
+        code: 'WH-01',
         isDefault: true,
       },
     });
   }
 
-  let retailWarehouse = await prisma.warehouse.findFirst({
-    where: { organizationId: org.id, code: 'WH-AND' },
+  let secondaryWarehouse = await prisma.warehouse.findFirst({
+    where: { organizationId: org.id, code: 'WH-02' },
   });
-  if (!retailWarehouse) {
-    retailWarehouse = await prisma.warehouse.create({
+  if (!secondaryWarehouse) {
+    secondaryWarehouse = await prisma.warehouse.create({
       data: {
         organizationId: org.id,
         branchId: mainBranch.id,
         name: 'Retail Depot (Andheri)',
-        code: 'WH-AND',
-        address: 'Unit 12, MIDC Cross Road B, Andheri East, Mumbai 400093',
+        code: 'WH-02',
         isDefault: false,
       },
     });
   }
-  console.log('✓ Warehouses verified (Bhiwandi & Andheri)');
+  console.log(`✓ Warehouses verified (${mainWarehouse.name}, ${secondaryWarehouse.name})`);
 
-  // 7. Product Categories
+  // 3. Product Categories
   const categories: Record<string, string> = {};
   const catNames = ['Office Furniture', 'IT & Electronics', 'Packaging & Supplies'];
   for (const name of catNames) {
@@ -205,7 +100,7 @@ async function main() {
   }
   console.log('✓ Product categories verified');
 
-  // 8. Units of Measurement (UOM)
+  // 4. Units of Measurement (UOM)
   const uomsToSeed = [
     { code: 'PCS', name: 'Pieces' },
     { code: 'BOX', name: 'Boxes' },
@@ -229,7 +124,7 @@ async function main() {
   }
   console.log('✓ Units of Measurement verified');
 
-  // 9. Products & Stock
+  // 5. Products & Stock
   const productsToSeed = [
     {
       name: 'Ergonomic Executive Chair',
@@ -362,7 +257,7 @@ async function main() {
   }
   console.log('✓ Products & Stock levels verified (6 products initialized)');
 
-  // 10. Customers
+  // 6. Customers
   const customersToSeed = [
     {
       name: 'Walk-in Counter Customer',
@@ -440,7 +335,7 @@ async function main() {
   }
   console.log('✓ Customers verified (4 customers initialized)');
 
-  // 11. Suppliers
+  // 7. Suppliers
   const suppliersToSeed = [
     {
       name: 'Nilkamal Office Systems Ltd',
@@ -503,7 +398,7 @@ async function main() {
   }
   console.log('✓ Suppliers verified (3 suppliers initialized)');
 
-  // 12. CRM Leads
+  // 8. CRM Leads
   const leadsToSeed = [
     {
       name: 'Rohan Verma',
@@ -579,7 +474,7 @@ async function main() {
   }
   console.log('✓ CRM Leads verified (5 leads initialized)');
 
-  // 13. Departments & Designations
+  // 9. Departments & Designations
   const departmentsToSeed = [
     'Executive Management',
     'Sales & Marketing',
@@ -624,13 +519,13 @@ async function main() {
   }
   console.log('✓ Departments & Designations verified');
 
-  // 14. Employees
+  // 10. Employees
   const employeesToSeed = [
     {
       employeeCode: 'EMP-001',
       firstName: 'Rahul',
       lastName: 'Sharma',
-      email: 'rahul.s@bizflow.local',
+      email: `rahul.s@${org.name.toLowerCase().replace(/\s+/g, '')}.com`,
       phone: '9820012345',
       joiningDate: new Date('2025-04-01'),
       dept: 'Sales & Marketing',
@@ -644,7 +539,7 @@ async function main() {
       employeeCode: 'EMP-002',
       firstName: 'Priya',
       lastName: 'Nair',
-      email: 'priya.n@bizflow.local',
+      email: `priya.n@${org.name.toLowerCase().replace(/\s+/g, '')}.com`,
       phone: '9820054321',
       joiningDate: new Date('2025-05-15'),
       dept: 'Finance & Accounts',
@@ -658,7 +553,7 @@ async function main() {
       employeeCode: 'EMP-003',
       firstName: 'Suresh',
       lastName: 'Ghadge',
-      email: 'suresh.g@bizflow.local',
+      email: `suresh.g@${org.name.toLowerCase().replace(/\s+/g, '')}.com`,
       phone: '9820098765',
       joiningDate: new Date('2025-06-01'),
       dept: 'Warehouse & Operations',
@@ -672,7 +567,7 @@ async function main() {
       employeeCode: 'EMP-004',
       firstName: 'Neha',
       lastName: 'Gupta',
-      email: 'neha.g@bizflow.local',
+      email: `neha.g@${org.name.toLowerCase().replace(/\s+/g, '')}.com`,
       phone: '9820067890',
       joiningDate: new Date('2025-07-01'),
       dept: 'Human Resources',
@@ -706,6 +601,9 @@ async function main() {
           hra: emp.hra,
           allowances: emp.allowance,
           deductions: emp.deduction,
+          bankAccountNumber: '918010045678' + Math.floor(100 + Math.random() * 900),
+          bankIfscCode: 'HDFC0000123',
+          panNumber: 'ABCPS' + Math.floor(1000 + Math.random() * 9000) + 'A',
         },
       });
     }
@@ -713,7 +611,7 @@ async function main() {
   }
   console.log('✓ Employees verified (4 staff members initialized)');
 
-  // 15. Daily Attendance
+  // 11. Daily Attendance
   const today = new Date();
   for (const empId of employeeIds) {
     const existing = await prisma.attendanceRecord.findFirst({
@@ -736,7 +634,7 @@ async function main() {
   }
   console.log('✓ Today attendance records verified');
 
-  // 16. Payroll Period & Payslips
+  // 12. Payroll Period & Payslips
   let payrollPeriod = await prisma.payrollPeriod.findFirst({
     where: { organizationId: org.id, month: today.getMonth() + 1, year: today.getFullYear() },
   });
@@ -777,7 +675,7 @@ async function main() {
   }
   console.log('✓ Payroll run & payslips verified');
 
-  // 17. Indian Standard Chart of Accounts
+  // 13. Indian Standard Chart of Accounts
   const standardAccounts = [
     // ASSETS
     { code: '1110', name: 'Cash in Hand', category: 'ASSET' as const, isSystem: true, balance: 15400 },
@@ -828,7 +726,7 @@ async function main() {
   }
   console.log('✓ Chart of Accounts verified (21 accounts initialized)');
 
-  // 18. Balanced Double-Entry Journal Vouchers
+  // 14. Balanced Double-Entry Journal Vouchers
   const jvEntries = [
     {
       entryNumber: 'JV-2026-27-00001',
@@ -895,7 +793,7 @@ async function main() {
   }
   console.log('✓ Journal vouchers verified (3 balanced double-entry vouchers initialized)');
 
-  // 19. Sales Invoices
+  // 15. Sales Invoices
   const invoicesToSeed = [
     {
       invNum: 'INV-2026-27-00001',
@@ -1001,7 +899,7 @@ async function main() {
   }
   console.log('✓ Sales invoices verified (3 invoices initialized)');
 
-  // 20. Purchase Invoices (Vendor Bills)
+  // 16. Purchase Invoices (Vendor Bills)
   const billsToSeed = [
     {
       billNum: 'BILL-2026-27-00001',
@@ -1088,20 +986,120 @@ async function main() {
     }
   }
   console.log('✓ Purchase bills verified (2 vendor bills initialized)');
+}
+
+async function main() {
+  console.log('--- Starting Universal BizFlow ERP Multi-Tenant Seeding ---');
+
+  // Roles
+  const roles = [
+    {
+      name: 'SuperAdmin',
+      description: 'System Super Administrator with unconstrained capabilities across all modules',
+      permissions: ['*'],
+    },
+    {
+      name: 'Admin',
+      description: 'Tenant Administrator with full access to company records and configurations',
+      permissions: ['admin:*', 'sales:*', 'purchase:*', 'inventory:*', 'accounting:*', 'hr:*', 'crm:*'],
+    },
+    {
+      name: 'Accountant',
+      description: 'Senior Accountant with access to books, ledger entries, bank reconciliation, and tax filings',
+      permissions: ['accounting:*', 'sales:read', 'purchase:read', 'reports:*'],
+    },
+    {
+      name: 'InventoryManager',
+      description: 'Warehouse supervisor with access to stock counts, adjustments, transfers, and inventory audits',
+      permissions: ['inventory:*', 'purchase:read', 'sales:read'],
+    },
+    {
+      name: 'SalesExecutive',
+      description: 'Sales and CRM representative for invoicing, quotations, lead pipeline, and receivables tracking',
+      permissions: ['sales:*', 'crm:*', 'customer:*'],
+    },
+  ];
+
+  const roleMap: Record<string, string> = {};
+  for (const r of roles) {
+    let role = await prisma.role.findFirst({ where: { name: r.name } });
+    if (!role) {
+      role = await prisma.role.create({
+        data: {
+          name: r.name,
+          description: r.description,
+          permissions: r.permissions,
+        },
+      });
+    }
+    roleMap[r.name] = role.id;
+  }
+  console.log('✓ System roles verified');
+
+  // Admin User
+  let admin = await prisma.user.findUnique({
+    where: { email: 'admin@bizflow.local' },
+  });
+  if (!admin) {
+    admin = await prisma.user.create({
+      data: {
+        email: 'admin@bizflow.local',
+        passwordHash: PASSWORD_HASH,
+        fullName: 'Administrator',
+        isSuperAdmin: true,
+      },
+    });
+  }
+
+  // Vinay User
+  let vinay = await prisma.user.findUnique({
+    where: { email: 'vinayveddulapall2002@gmail.com' },
+  });
+
+  // Find all organizations
+  const orgs = await prisma.organization.findMany();
+  console.log(`Found ${orgs.length} organizations in database: ${orgs.map((o) => o.name).join(', ')}`);
+
+  for (const org of orgs) {
+    // Grant admin membership
+    const adminMem = await prisma.organizationMember.findFirst({
+      where: { userId: admin.id, organizationId: org.id },
+    });
+    if (!adminMem) {
+      await prisma.organizationMember.create({
+        data: {
+          userId: admin.id,
+          organizationId: org.id,
+          roleId: roleMap['SuperAdmin'],
+          isDefault: true,
+        },
+      });
+    }
+
+    // Grant Vinay membership to all orgs as SuperAdmin too!
+    if (vinay) {
+      const vinayMem = await prisma.organizationMember.findFirst({
+        where: { userId: vinay.id, organizationId: org.id },
+      });
+      if (!vinayMem) {
+        await prisma.organizationMember.create({
+          data: {
+            userId: vinay.id,
+            organizationId: org.id,
+            roleId: roleMap['SuperAdmin'],
+            isDefault: org.name.toLowerCase().includes('iit'),
+          },
+        });
+      }
+    }
+
+    // Seed data into this org
+    await seedOrganization(org, roleMap);
+  }
 
   console.log('\n=============================================================');
-  console.log('🎉 COMPLETE DUMMY DATA SEEDED ACROSS ALL ERP MODULES!');
-  console.log('Organization: Acme Enterprises');
-  console.log('Branches:     Head Office (Mumbai), Branch Office (Pune)');
-  console.log('Warehouses:   Central Warehouse (Bhiwandi), Retail Depot (Andheri)');
-  console.log('Products:     6 Products with stock levels & HSN codes');
-  console.log('Customers:    4 Customers (Walk-in, Apex, Metro Mart, Bangalore Tech)');
-  console.log('Suppliers:    3 Suppliers (Nilkamal, Logitech, RollPack)');
-  console.log('CRM Leads:    5 Prospective Deals in different pipeline stages');
-  console.log('HR / Staff:   4 Employees with CTC breakdown, attendance & payslips');
-  console.log('Accounting:   21 Indian Chart of Accounts + 3 Balanced Journal Vouchers');
-  console.log('Invoices:     3 Sales Invoices (Metro Mart, Apex, Bangalore Tech)');
-  console.log('Vendor Bills: 2 Purchase Bills (Nilkamal, Logitech)');
+  console.log('🎉 COMPLETE DUMMY DATA SEEDED ACROSS ALL ORGANIZATIONS & TABS!');
+  console.log('Users linked: admin@bizflow.local, vinayveddulapall2002@gmail.com');
   console.log('=============================================================');
 }
 

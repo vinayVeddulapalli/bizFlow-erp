@@ -35,13 +35,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const activeMembership = memberships.find((m) => m.organizationId === activeOrgId) || memberships[0];
-  const activeOrgName = activeMembership ? activeMembership.organizationName : 'Select Organization';
+  const activeOrgName = activeMembership?.organizationName || (user as any)?.businessName || 'Acme Enterprises';
 
   React.useEffect(() => {
-    if (!activeOrgId && activeMembership) {
+    if (activeMembership && (!activeOrgId || activeOrgId !== activeMembership.organizationId)) {
       switchOrganization(activeMembership.organizationId);
     }
-  }, [activeOrgId, activeMembership]);
+  }, [activeMembership, activeOrgId]);
 
   interface NavItem {
     name: string;

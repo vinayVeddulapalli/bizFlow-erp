@@ -155,6 +155,16 @@ export class AuthService {
     const defaultMembership =
       user.memberships.find((m) => m.isDefault) || user.memberships[0];
 
+    const memberships: UserMembership[] = user.memberships.map((m) => ({
+      id: m.id,
+      organizationId: m.organizationId,
+      organizationName: m.organization.name,
+      roleId: m.roleId,
+      roleName: m.role.name,
+      isDefault: m.isDefault,
+      permissions: m.role.permissions,
+    }));
+
     const tokens = await this.generateTokens(
       user.id,
       user.email,
@@ -174,6 +184,7 @@ export class AuthService {
         permissions: defaultMembership ? defaultMembership.role.permissions : [],
       },
       tokens,
+      memberships,
     };
   }
 
@@ -243,7 +254,7 @@ export class AuthService {
       this.configService.get<string>('JWT_ACCESS_SECRET') ||
       'bizflow_super_secret_jwt_access_key_change_in_production_min32chars';
     const accessExpiresIn =
-      this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m';
+      this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '7d';
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: accessSecret,
@@ -252,7 +263,7 @@ export class AuthService {
 
     return {
       accessToken,
-      expiresIn: 15 * 60, // 15 minutes in seconds
+      expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
     };
   }
 }

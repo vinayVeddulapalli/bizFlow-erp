@@ -117,7 +117,7 @@ export default function ProductsPage() {
       resetForm();
     },
     onError: (err: any) => {
-      setModalError(err.response?.data?.message || 'Failed to create product. Check SKU uniqueness.');
+      setModalError(err.message || err.response?.data?.message || 'Failed to create product. Check SKU uniqueness.');
     },
   });
 
@@ -148,12 +148,14 @@ export default function ProductsPage() {
     }
 
     const payload: any = {
+      type: 'GOODS',
       name: name.trim(),
       sku: sku.trim() || undefined,
       barcode: barcode.trim() || undefined,
       hsnSacCode: hsnSacCode.trim() || undefined,
       categoryId: categoryId || undefined,
       uomId: uomId || undefined,
+      sellingPrice: parseFloat(salePrice) || 0,
       salePrice: parseFloat(salePrice) || 0,
       purchasePrice: parseFloat(purchasePrice) || 0,
       taxRate: parseFloat(taxRate) || 0,
@@ -169,6 +171,7 @@ export default function ProductsPage() {
       payload.openingStock = initialStockQty;
       payload.openingStockUnitCost = parseFloat(openingCost) || parseFloat(purchasePrice) || 0;
       payload.warehouseId = warehouseId;
+      payload.openingWarehouseId = warehouseId;
     }
 
     createProductMutation.mutate(payload);

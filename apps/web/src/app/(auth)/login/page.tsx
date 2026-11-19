@@ -32,7 +32,7 @@ export default function LoginPage() {
       setServerError(null);
       const res: any = await apiClient.post('/auth/login', data);
       if (res && res.data) {
-        login(res.data.tokens, res.data.user);
+        login(res.data.tokens, res.data.user, res.data.memberships);
       }
     } catch (err: any) {
       setServerError(err.message || 'Invalid email or password');

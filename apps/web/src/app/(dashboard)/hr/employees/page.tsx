@@ -76,7 +76,7 @@ export default function EmployeesPage() {
       resetForm();
     },
     onError: (err: any) => {
-      setModalError(err.response?.data?.message || 'Failed to create employee profile.');
+      setModalError(err.message || err.response?.data?.message || 'Failed to create employee profile.');
     },
   });
 
