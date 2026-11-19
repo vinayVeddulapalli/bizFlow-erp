@@ -10,8 +10,8 @@ interface AuthContextType {
   memberships: UserMembership[];
   activeOrgId: string | null;
   isLoading: boolean;
-  login: (tokens: { accessToken: string }, userData: AuthenticatedUser) => void;
-  register: (tokens: { accessToken: string }, userData: AuthenticatedUser) => void;
+  login: (tokens: { accessToken: string }, userData: AuthenticatedUser, initialMemberships?: UserMembership[]) => void;
+  register: (tokens: { accessToken: string }, userData: AuthenticatedUser, initialMemberships?: UserMembership[]) => void;
   logout: () => Promise<void>;
   switchOrganization: (orgId: string) => Promise<void>;
   refreshProfile: () => Promise<void>;

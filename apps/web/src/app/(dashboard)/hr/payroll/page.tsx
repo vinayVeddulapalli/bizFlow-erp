@@ -51,21 +51,23 @@ export default function PayrollPage() {
     queryKey: ['payroll-periods'],
     queryFn: async () => {
       const res: any = await apiClient.get('/hr/payroll/periods');
-      const data: PayrollPeriodItem[] = res.data;
-      if (data.length > 0 && !activePeriodId) {
-        setActivePeriodId(data[0].id);
-      }
+      const data: PayrollPeriodItem[] = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
       return data;
     },
   });
 
+  // Effective active period ID
+  const effectivePeriodId = activePeriodId || (periods.length > 0 ? periods[0].id : null);
+  const activePeriod = periods.find((p) => p.id === effectivePeriodId) || periods[0];
+
   // Fetch payslips for active period
   const { data: payslips = [], isLoading: isPayslipsLoading } = useQuery<PayslipItem[]>({
-    queryKey: ['payslips', activePeriodId],
-    enabled: !!activePeriodId,
+    queryKey: ['payslips', effectivePeriodId],
+    enabled: !!effectivePeriodId,
     queryFn: async () => {
-      const res: any = await apiClient.get(`/hr/payroll/periods/${activePeriodId}/payslips`);
-      return res.data;
+      if (!effectivePeriodId) return [];
+      const res: any = await apiClient.get(`/hr/payroll/periods/${effectivePeriodId}/payslips`);
+      return Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
     },
   });
 
@@ -79,11 +81,15 @@ export default function PayrollPage() {
     },
     onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['payroll-periods'] });
-      setActivePeriodId(res.data.id);
+      const newPeriodId = res.data?.id || res.id;
+      if (newPeriodId) {
+        setActivePeriodId(newPeriodId);
+        queryClient.invalidateQueries({ queryKey: ['payslips', newPeriodId] });
+      }
       alert('Monthly payroll processed successfully.');
     },
     onError: (err: any) => {
-      alert(err.response?.data?.message || 'Failed to process payroll.');
+      alert(err.message || err.response?.data?.message || 'Failed to process payroll.');
     },
   });
 
@@ -95,7 +101,30 @@ export default function PayrollPage() {
     return months[m - 1] || `Month ${m}`;
   };
 
-  const activePeriod = periods.find((p) => p.id === activePeriodId) || periods[0];
+  const handleMonthChange = (month: number) => {
+    setSelectedMonth(month);
+    const match = periods.find((p) => p.month === month && p.year === selectedYear);
+    if (match) {
+      setActivePeriodId(match.id);
+    }
+  };
+
+  const handleYearChange = (year: number) => {
+    setSelectedYear(year);
+    const match = periods.find((p) => p.month === selectedMonth && p.year === year);
+    if (match) {
+      setActivePeriodId(match.id);
+    }
+  };
+
+  const handlePeriodSelect = (periodId: string) => {
+    setActivePeriodId(periodId);
+    const match = periods.find((p) => p.id === periodId);
+    if (match) {
+      setSelectedMonth(match.month);
+      setSelectedYear(match.year);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -128,8 +157,8 @@ export default function PayrollPage() {
 
           <select
             value={selectedMonth}
-            onChange={(e) => setSelectedMonth(parseInt(e.target.value, 10))}
-            className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-teal-500"
+            onChange={(e) => handleMonthChange(parseInt(e.target.value, 10))}
+            className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
               <option key={m} value={m}>
@@ -140,8 +169,8 @@ export default function PayrollPage() {
 
           <select
             value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-            className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-teal-500"
+            onChange={(e) => handleYearChange(parseInt(e.target.value, 10))}
+            className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
           >
             <option value={2026}>2026</option>
             <option value={2027}>2027</option>
@@ -162,8 +191,8 @@ export default function PayrollPage() {
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-semibold">View Processed Cycle:</span>
             <select
-              value={activePeriodId || ''}
-              onChange={(e) => setActivePeriodId(e.target.value)}
+              value={effectivePeriodId || ''}
+              onChange={(e) => handlePeriodSelect(e.target.value)}
               className="px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-slate-50 font-bold text-slate-800 outline-none"
             >
               {periods.map((p) => (

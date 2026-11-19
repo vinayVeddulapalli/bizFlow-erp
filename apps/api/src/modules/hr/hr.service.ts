@@ -268,10 +268,20 @@ export class HrService {
           year,
         },
       },
+      include: {
+        payslips: {
+          include: { employee: true },
+        },
+      },
     });
 
+    if (existing && existing.payslips.length > 0) {
+      return existing;
+    }
+
     if (existing) {
-      throw new ConflictException(`Payroll for ${month}/${year} has already been generated.`);
+      await this.prisma.payslip.deleteMany({ where: { payrollPeriodId: existing.id } });
+      await this.prisma.payrollPeriod.delete({ where: { id: existing.id } });
     }
 
     const employees = await this.prisma.employee.findMany({

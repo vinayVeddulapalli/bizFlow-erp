@@ -126,7 +126,7 @@ export class AuthService {
     };
   }
 
-  async login(input: LoginInput): Promise<{ user: AuthenticatedUser; tokens: AuthTokens }> {
+  async login(input: LoginInput): Promise<{ user: AuthenticatedUser; tokens: AuthTokens; memberships: UserMembership[] }> {
     const user = await this.prisma.user.findUnique({
       where: { email: input.email },
       include: {
