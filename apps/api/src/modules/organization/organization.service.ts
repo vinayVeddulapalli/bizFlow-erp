@@ -188,4 +188,61 @@ export class OrganizationService {
       permissions: targetMembership.role.permissions,
     };
   }
+
+  async getInvoiceTemplateConfig(organizationId: string) {
+    let config = await this.prisma.invoiceTemplateConfig.findUnique({
+      where: { organizationId },
+    });
+
+    if (!config) {
+      config = await this.prisma.invoiceTemplateConfig.create({
+        data: {
+          organizationId,
+          templateTheme: 'MODERN_TEAL',
+          paperSize: 'A4',
+          showLogo: true,
+          showSignature: true,
+          showQrCode: true,
+          headerColor: '#0d9488',
+          customTerms: '1. Goods once sold will not be taken back without original invoice.\n2. Interest @ 18% p.a. will be charged on overdue payments beyond credit period.',
+          invoicePrefix: 'INV',
+          customField1Title: 'PO Reference #',
+          customField2Title: 'Vehicle / Transporter ID',
+        },
+      });
+    }
+
+    return config;
+  }
+
+  async updateInvoiceTemplateConfig(organizationId: string, input: any) {
+    return this.prisma.invoiceTemplateConfig.upsert({
+      where: { organizationId },
+      update: {
+        templateTheme: input.templateTheme,
+        paperSize: input.paperSize,
+        showLogo: input.showLogo,
+        showSignature: input.showSignature,
+        showQrCode: input.showQrCode,
+        headerColor: input.headerColor,
+        customTerms: input.customTerms,
+        invoicePrefix: input.invoicePrefix,
+        customField1Title: input.customField1Title,
+        customField2Title: input.customField2Title,
+      },
+      create: {
+        organizationId,
+        templateTheme: input.templateTheme || 'MODERN_TEAL',
+        paperSize: input.paperSize || 'A4',
+        showLogo: input.showLogo ?? true,
+        showSignature: input.showSignature ?? true,
+        showQrCode: input.showQrCode ?? true,
+        headerColor: input.headerColor || '#0d9488',
+        customTerms: input.customTerms,
+        invoicePrefix: input.invoicePrefix || 'INV',
+        customField1Title: input.customField1Title,
+        customField2Title: input.customField2Title,
+      },
+    });
+  }
 }

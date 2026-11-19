@@ -2,8 +2,10 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Body,
   Param,
+  Req,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -32,6 +34,18 @@ export class OrganizationController {
   @ApiOperation({ summary: 'List all organizations the user is a member of' })
   async listUserOrgs(@CurrentUser('id') userId: string) {
     return this.orgService.getUserOrganizations(userId);
+  }
+
+  @Get('invoice-template')
+  @ApiOperation({ summary: 'Get invoice template and styling configuration' })
+  async getInvoiceTemplate(@Req() req: any) {
+    return this.orgService.getInvoiceTemplateConfig(req.organizationId);
+  }
+
+  @Put('invoice-template')
+  @ApiOperation({ summary: 'Update invoice template and styling configuration' })
+  async updateInvoiceTemplate(@Req() req: any, @Body() body: any) {
+    return this.orgService.updateInvoiceTemplateConfig(req.organizationId, body);
   }
 
   @Get(':id')
