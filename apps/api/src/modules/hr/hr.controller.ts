@@ -58,6 +58,29 @@ export class HrController {
     return this.hrService.getAttendanceByDate(req.organizationId, targetDate);
   }
 
+  @Get('attendance/monthly-summary')
+  async getMonthlyAttendanceOverview(
+    @Req() req: any,
+    @Query('month') month?: string,
+    @Query('year') year?: string
+  ) {
+    const m = month ? parseInt(month, 10) : new Date().getMonth() + 1;
+    const y = year ? parseInt(year, 10) : new Date().getFullYear();
+    return this.hrService.getMonthlyAttendanceOverview(req.organizationId, m, y);
+  }
+
+  @Get('attendance/employee/:id')
+  async getEmployeeMonthlyAttendance(
+    @Req() req: any,
+    @Param('id') employeeId: string,
+    @Query('month') month?: string,
+    @Query('year') year?: string
+  ) {
+    const m = month ? parseInt(month, 10) : new Date().getMonth() + 1;
+    const y = year ? parseInt(year, 10) : new Date().getFullYear();
+    return this.hrService.getEmployeeMonthlyAttendance(req.organizationId, employeeId, m, y);
+  }
+
   @Post('attendance')
   async logAttendance(@Req() req: any, @Body() body: LogAttendanceInput) {
     return this.hrService.logAttendance(req.organizationId, body);
