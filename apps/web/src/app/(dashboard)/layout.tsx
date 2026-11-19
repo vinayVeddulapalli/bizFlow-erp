@@ -30,6 +30,8 @@ import {
   Wallet,
   ClipboardList,
   Landmark,
+  Award,
+  Globe,
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -60,6 +62,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Sales Invoices', href: '/sales/invoices', icon: ShoppingCart },
     { name: 'Orders & Challans', href: '/orders', icon: ClipboardList },
     { name: 'Customers', href: '/sales/customers', icon: Users },
+    { name: 'Field Sales Agents', href: '/sales/salespersons', icon: Award },
+    { name: 'Online Storefront', href: '/store', icon: Globe },
     { name: 'CRM & Leads', href: '/crm/leads', icon: UserCheck },
     { name: 'Purchase Bills', href: '/purchases/bills', icon: ShoppingBag },
     { name: 'Suppliers', href: '/purchases/suppliers', icon: Building },
