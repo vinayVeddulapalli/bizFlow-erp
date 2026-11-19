@@ -35,7 +35,14 @@ export default function LoginPage() {
         login(res.data.tokens, res.data.user, res.data.memberships);
       }
     } catch (err: any) {
-      setServerError(err.message || 'Invalid email or password');
+      const msg = err.message || err.error?.message || 'Invalid email or password';
+      if (msg === 'Network Error' || msg.includes('Network')) {
+        setServerError(
+          'Cannot reach backend server. If using Render, free instances take ~50s to wake up on the first request. Please wait 30 seconds and try again.'
+        );
+      } else {
+        setServerError(msg);
+      }
     } finally {
       setIsSubmitting(false);
     }

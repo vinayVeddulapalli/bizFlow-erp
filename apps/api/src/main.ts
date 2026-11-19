@@ -56,9 +56,9 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 4000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`=======================================================`);
-  logger.log(`BizFlow API successfully running on: http://localhost:${port}/${globalPrefix}`);
+  logger.log(`BizFlow API successfully running on: http://0.0.0.0:${port}/${globalPrefix}`);
   logger.log(`Swagger OpenAPI Documentation:      http://localhost:${port}/api/docs`);
   logger.log(`=======================================================`);
 }
