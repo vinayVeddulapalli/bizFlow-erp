@@ -8,7 +8,7 @@ services:
     plan: free
     region: oregon
     rootDir: .
-    buildCommand: pnpm install --frozen-lockfile && pnpm run prisma:generate && pnpm run build:api
+    buildCommand: pnpm install --no-frozen-lockfile && pnpm run prisma:generate && pnpm run build:api
     startCommand: pnpm run start:api
     healthCheckPath: /api/v1/health
     envVars:
@@ -34,7 +34,7 @@ services:
     plan: free
     region: oregon
     rootDir: .
-    buildCommand: pnpm install --frozen-lockfile && pnpm run build:web
+    buildCommand: pnpm install --no-frozen-lockfile && pnpm run build:web
     startCommand: pnpm run start:web
     envVars:
       - key: NODE_ENV

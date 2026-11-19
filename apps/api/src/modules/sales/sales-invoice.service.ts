@@ -96,7 +96,7 @@ export class SalesInvoiceService {
     let totalIgstAmount = toDecimal(0);
     let totalTaxAmount = toDecimal(0);
 
-    const calculatedItems = input.items.map((item) => {
+    const calculatedItems = input.items.map((item: any) => {
       const calculation = calculateItemGst({
         quantity: item.quantity,
         unitPrice: item.unitPrice,

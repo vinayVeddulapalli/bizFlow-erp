@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
-    "build:api": "pnpm --filter @bizflow/api build",
-    "build:web": "pnpm --filter @bizflow/web build",
+    "build:packages": "pnpm -r --filter \"./packages/*\" build",
+    "build:api": "pnpm run build:packages && pnpm --filter @bizflow/api build",
+    "build:web": "pnpm run build:packages && pnpm --filter @bizflow/web build",
     "prisma:generate": "pnpm --filter @bizflow/api prisma:generate",
     "start:api": "node apps/api/dist/main",
     "start:web": "npm --prefix apps/web start",
