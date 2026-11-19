@@ -59,12 +59,17 @@ export class ProductService {
         uomId: p.uomId,
         uomCode: p.uom?.code,
         sellingPrice: p.sellingPrice.toString(),
+        salePrice: p.sellingPrice.toString(),
         purchasePrice: p.purchasePrice.toString(),
         taxRate: p.taxRate.toString(),
         isTaxInclusive: p.isTaxInclusive,
         minStockLevel: p.minStockLevel.toString(),
         reorderPoint: p.reorderPoint.toString(),
         currentStock: currentStock.toString(),
+        totalStock: currentStock.toString(),
+        isLowStock: toDecimal(currentStock).lte(toDecimal(p.minStockLevel.toString())),
+        category: p.category ? { id: p.category.id, name: p.category.name } : null,
+        uom: p.uom ? { id: p.uom.id, name: p.uom.name, symbol: p.uom.code, code: p.uom.code } : null,
         isActive: p.isActive,
         stockLevels: p.stockLevels.map((sl) => ({
           id: sl.id,
@@ -117,7 +122,9 @@ export class ProductService {
 
     return {
       ...p,
+      salePrice: p.sellingPrice.toString(),
       currentStock: currentStock.toString(),
+      totalStock: currentStock.toString(),
     };
   }
 

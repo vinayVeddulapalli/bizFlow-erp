@@ -195,7 +195,7 @@ export default function StockMovementsPage() {
                 </tr>
               ) : (
                 movements.map((m) => {
-                  const qty = parseFloat(m.quantity.toString());
+                  const qty = parseFloat(m.quantity?.toString() || '0');
                   const isPositive = qty > 0;
 
                   return (
@@ -226,7 +226,7 @@ export default function StockMovementsPage() {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono text-slate-600">
-                        {formatCurrency(m.unitCost.toString())}
+                        {formatCurrency(m.unitCost?.toString() || '0')}
                       </td>
                       <td className="py-3.5 px-4 text-[11px] text-slate-500 max-w-xs truncate">
                         {m.referenceId && (

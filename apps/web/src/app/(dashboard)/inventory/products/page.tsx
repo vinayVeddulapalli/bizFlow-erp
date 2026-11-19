@@ -333,9 +333,12 @@ export default function ProductsPage() {
                   </td>
                 </tr>
               ) : (
-                products.map((item) => {
-                  const stock = parseFloat(item.totalStock.toString());
+                products.map((item: any) => {
+                  const stockRaw = item.totalStock ?? item.currentStock ?? 0;
+                  const stock = parseFloat(stockRaw?.toString() || '0');
                   const minStock = parseFloat(item.minStockLevel?.toString() || '0');
+                  const salePrice = item.salePrice ?? item.sellingPrice ?? 0;
+                  const purchasePrice = item.purchasePrice ?? 0;
 
                   let badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
                   let badgeText = 'In Stock';
@@ -343,7 +346,7 @@ export default function ProductsPage() {
                   if (stock <= 0) {
                     badgeColor = 'bg-rose-50 text-rose-700 border-rose-200';
                     badgeText = 'Out of Stock';
-                  } else if (item.isLowStock) {
+                  } else if (item.isLowStock || (minStock > 0 && stock <= minStock)) {
                     badgeColor = 'bg-amber-50 text-amber-700 border-amber-200';
                     badgeText = 'Low Stock';
                   }
@@ -359,16 +362,16 @@ export default function ProductsPage() {
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <div>{item.category?.name || 'Uncategorized'}</div>
+                        <div>{item.category?.name || item.categoryName || 'Uncategorized'}</div>
                         <div className="text-[11px] text-slate-400">
-                          {item.uom?.name ? `${item.uom.name} (${item.uom.symbol})` : 'PCS'}
+                          {item.uom?.name ? `${item.uom.name} (${item.uom.symbol || item.uom.code || 'PCS'})` : (item.uomCode || 'PCS')}
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-right font-medium financial-figure">
-                        {formatCurrency(item.salePrice.toString())}
+                        {formatCurrency(salePrice?.toString() || '0')}
                       </td>
                       <td className="py-3.5 px-4 text-right font-medium text-slate-500 financial-figure">
-                        {formatCurrency(item.purchasePrice.toString())}
+                        {formatCurrency(purchasePrice?.toString() || '0')}
                       </td>
                       <td className="py-3.5 px-4 text-right">{item.taxRate}%</td>
                       <td className="py-3.5 px-4 text-center font-bold text-slate-900 text-sm">

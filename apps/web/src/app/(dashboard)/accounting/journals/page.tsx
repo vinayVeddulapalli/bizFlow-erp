@@ -254,16 +254,16 @@ export default function JournalEntriesPage() {
                             key={l.id}
                             className="bg-slate-50 px-2 py-0.5 rounded border border-slate-200 text-slate-600 font-mono text-[10px]"
                           >
-                            {l.account.name}: {parseFloat(l.debit.toString()) > 0 ? `Dr ₹${l.debit}` : `Cr ₹${l.credit}`}
+                            {l.account?.name || 'Account'}: {parseFloat(l.debit?.toString() || '0') > 0 ? `Dr ₹${l.debit}` : `Cr ₹${l.credit}`}
                           </span>
                         ))}
                       </div>
                     </td>
                     <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900 financial-figure">
-                      {formatCurrency(entry.totalDebit.toString())}
+                      {formatCurrency(entry.totalDebit?.toString() || '0')}
                     </td>
                     <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900 financial-figure">
-                      {formatCurrency(entry.totalCredit.toString())}
+                      {formatCurrency(entry.totalCredit?.toString() || '0')}
                     </td>
                   </tr>
                 ))

@@ -390,7 +390,7 @@ export default function NewSalesInvoicePage() {
                     />
                   </td>
                   <td className="py-2.5 px-3 text-right font-mono font-medium text-slate-600">
-                    ₹{it.calc.taxableAmount.toString()}
+                    ₹{it.calc?.taxableAmount?.toString() || '0'}
                   </td>
                   <td className="py-2.5 px-3">
                     <select
@@ -406,10 +406,10 @@ export default function NewSalesInvoicePage() {
                     </select>
                   </td>
                   <td className="py-2.5 px-3 text-right font-mono font-medium text-slate-600">
-                    ₹{it.calc.totalTaxAmount.toString()}
+                    ₹{it.calc?.totalTaxAmount?.toString() || '0'}
                   </td>
                   <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
-                    ₹{it.calc.totalAmount.toString()}
+                    ₹{it.calc?.totalAmount?.toString() || '0'}
                   </td>
                   <td className="py-2.5 px-3 text-center">
                     <button

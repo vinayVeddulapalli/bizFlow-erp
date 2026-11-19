@@ -228,7 +228,7 @@ export default function ChartOfAccountsPage() {
                 </tr>
               ) : (
                 filteredAccounts.map((acc) => {
-                  const bal = parseFloat(acc.currentBalance.toString());
+                  const bal = parseFloat(acc.currentBalance?.toString() || '0');
                   return (
                     <tr key={acc.id} className="hover:bg-slate-50/70 transition">
                       <td className="py-3.5 px-4 font-mono font-bold text-slate-800">

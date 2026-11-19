@@ -254,7 +254,7 @@ export default function CrmLeadsPage() {
                       {lead.source || 'Direct'}
                     </td>
                     <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900 financial-figure">
-                      {formatCurrency(lead.estimatedValue.toString())}
+                      {formatCurrency(lead.estimatedValue?.toString() || '0')}
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       {getStatusBadge(lead.status)}
