@@ -28,6 +28,7 @@ import {
   BarChart3,
   Store,
   Wallet,
+  ClipboardList,
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -56,6 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'POS Counter Billing', href: '/pos', icon: Store },
     { name: 'Sales Invoices', href: '/sales/invoices', icon: ShoppingCart },
+    { name: 'Orders & Challans', href: '/orders', icon: ClipboardList },
     { name: 'Customers', href: '/sales/customers', icon: Users },
     { name: 'CRM & Leads', href: '/crm/leads', icon: UserCheck },
     { name: 'Purchase Bills', href: '/purchases/bills', icon: ShoppingBag },

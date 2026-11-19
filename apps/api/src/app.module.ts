@@ -24,6 +24,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HealthModule } from './modules/health/health.module';
 import { PosModule } from './modules/pos/pos.module';
 import { ExpenseModule } from './modules/expense/expense.module';
+import { OrdersModule } from './modules/orders/orders.module';
 import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesAndPermissionsGuard } from './common/guards/roles.guard';
@@ -53,6 +54,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     HealthModule,
     PosModule,
     ExpenseModule,
+    OrdersModule,
   ],
   providers: [
     {
