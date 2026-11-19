@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../../../lib/api-client';
 import { CustomerDto } from '@bizflow/shared-types';
 import { formatCurrency, INDIAN_STATES } from '@bizflow/shared-utils';
-import { Plus, Search, Building2, Phone, Mail, MapPin, X, Loader2 } from 'lucide-react';
+import { Plus, Search, Building2, Phone, Mail, MapPin, X, Loader2, Share2, CheckCircle2 } from 'lucide-react';
 
 export default function CustomersPage() {
   const queryClient = useQueryClient();
@@ -112,18 +112,19 @@ export default function CustomersPage() {
                 <th className="py-3.5 px-4">GSTIN & State</th>
                 <th className="py-3.5 px-4">Party Type</th>
                 <th className="py-3.5 px-4 text-right">Outstanding Balance</th>
+                <th className="py-3.5 px-4 text-center">Payment Reminders</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-slate-400">
+                  <td colSpan={6} className="py-8 text-center text-slate-400">
                     Loading customer directory...
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
                     No customers found. Click <strong>Add Customer</strong> to create your first client.
                   </td>
                 </tr>
@@ -163,6 +164,50 @@ export default function CustomersPage() {
                     </td>
                     <td className="py-3.5 px-4 text-right financial-figure font-bold text-slate-900">
                       {formatCurrency(c.currentBalance)}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      {Number(c.currentBalance) > 0 ? (
+                        <div className="flex items-center justify-center gap-1.5">
+                          {c.phone && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cleanPhone = (c.phone || '').replace(/[^0-9]/g, '');
+                                const phoneWithCountry = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+                                const text = encodeURIComponent(
+                                  `Dear ${c.name},\nThis is a friendly payment reminder regarding your outstanding balance of ${formatCurrency(
+                                    c.currentBalance
+                                  )}. Kindly process the payment at your earliest convenience.\nThank you!`
+                                );
+                                window.open(`https://wa.me/${phoneWithCountry}?text=${text}`, '_blank');
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-bold border border-emerald-200 transition shadow-xs"
+                              title="Send WhatsApp Payment Reminder"
+                            >
+                              <Share2 className="w-3 h-3" /> WhatsApp Due Alert
+                            </button>
+                          )}
+                          {c.email && (
+                            <a
+                              href={`mailto:${c.email}?subject=${encodeURIComponent(
+                                `Payment Reminder - Outstanding Balance: ${formatCurrency(c.currentBalance)}`
+                              )}&body=${encodeURIComponent(
+                                `Dear ${c.name},\n\nWe hope this email finds you well. This is a gentle reminder that an amount of ${formatCurrency(
+                                  c.currentBalance
+                                )} is currently outstanding on your account.\n\nPlease let us know once the payment has been scheduled.\n\nBest regards,\nAccounts Team`
+                              )}`}
+                              className="p-1.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                              title="Send Email Reminder"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Settled / No Dues
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))
