@@ -15,6 +15,8 @@ import {
   CheckCircle2,
   ArrowRight,
   X,
+  Globe,
+  ExternalLink,
 } from 'lucide-react';
 
 interface CustomerItem {
@@ -126,7 +128,7 @@ interface OrdersOverview {
 
 export default function OrdersHubPage() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'sales' | 'purchases' | 'challans' | 'credit-notes' | 'debit-notes'>('sales');
+  const [activeTab, setActiveTab] = useState<'sales' | 'purchases' | 'challans' | 'credit-notes' | 'debit-notes' | 'online-orders'>('sales');
   const [search, setSearch] = useState('');
 
   // Modals
@@ -250,6 +252,38 @@ export default function OrdersHubPage() {
       const res: any = await apiClient.get('/orders/debit-notes');
       return res.data || [];
     },
+  });
+
+  // Online Store Orders Query
+  const { data: onlineOrders = [], isLoading: isOnlineOrdersLoading } = useQuery<any[]>({
+    queryKey: ['online-orders'],
+    enabled: activeTab === 'online-orders',
+    queryFn: async () => {
+      const res: any = await apiClient.get('/store/orders');
+      return Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
+    },
+  });
+
+  const convertOnlineOrderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      return apiClient.post(`/store/orders/${orderId}/convert`);
+    },
+    onSuccess: (res: any) => {
+      alert(res.data?.message || res.message || 'Online order converted to Tax Invoice!');
+      queryClient.invalidateQueries({ queryKey: ['online-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orders-overview'] });
+    },
+    onError: (err: any) => alert(err.message || 'Failed to convert online order.'),
+  });
+
+  const updateOnlineOrderStatusMutation = useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
+      return apiClient.patch(`/store/orders/${orderId}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['online-orders'] });
+    },
+    onError: (err: any) => alert(err.message || 'Failed to update order status.'),
   });
 
   // Convert Sales Order Mutation
@@ -389,6 +423,16 @@ export default function OrdersHubPage() {
               <Plus className="w-4 h-4" /> Issue Debit Note
             </button>
           )}
+          {activeTab === 'online-orders' && (
+            <a
+              href="/store"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm transition"
+            >
+              <ExternalLink className="w-4 h-4" /> Open Public Storefront
+            </a>
+          )}
         </div>
       </div>
 
@@ -504,6 +548,17 @@ export default function OrdersHubPage() {
           }`}
         >
           <RotateCcw className="w-4 h-4" /> Debit Notes (Purchase Return)
+        </button>
+
+        <button
+          onClick={() => setActiveTab('online-orders')}
+          className={`flex items-center gap-2 px-4 py-2.5 border-b-2 text-xs font-bold transition whitespace-nowrap ${
+            activeTab === 'online-orders'
+              ? 'border-teal-600 text-teal-700 bg-teal-50/40 rounded-t-lg'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Globe className="w-4 h-4 text-emerald-600" /> Online Store Orders ({onlineOrders.length})
         </button>
       </div>
 
@@ -836,6 +891,129 @@ export default function OrdersHubPage() {
                     </td>
                   </tr>
                 ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ================= TAB 6: ONLINE STORE ORDERS ================= */}
+      {activeTab === 'online-orders' && (
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-3 px-4">Order #</th>
+                <th className="py-3 px-4">Placed Date</th>
+                <th className="py-3 px-4">Customer & Phone</th>
+                <th className="py-3 px-4">Delivery Address</th>
+                <th className="py-3 px-4">Items Summary</th>
+                <th className="py-3 px-4 text-right">Order Total</th>
+                <th className="py-3 px-4 text-center">Order Status</th>
+                <th className="py-3 px-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {isOnlineOrdersLoading ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-slate-400">
+                    Loading online store orders...
+                  </td>
+                </tr>
+              ) : onlineOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-slate-400">
+                    No online orders placed yet. Share your store link{' '}
+                    <a href="/store" target="_blank" className="text-teal-600 underline font-semibold">
+                      /store
+                    </a>{' '}
+                    with customers to receive online direct orders!
+                  </td>
+                </tr>
+              ) : (
+                onlineOrders
+                  .filter(
+                    (o) =>
+                      o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
+                      (o.customerName || '').toLowerCase().includes(search.toLowerCase()) ||
+                      (o.customerPhone || '').includes(search)
+                  )
+                  .map((order) => (
+                    <tr key={order.id} className="hover:bg-slate-50/60 transition">
+                      <td className="py-3 px-4 font-mono font-bold text-teal-700">
+                        {order.orderNumber}
+                      </td>
+                      <td className="py-3 px-4 text-slate-600">
+                        {new Date(order.placedAt).toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="font-bold text-slate-900">{order.customerName}</div>
+                        <div className="text-[11px] text-slate-500 font-mono">{order.customerPhone}</div>
+                      </td>
+                      <td className="py-3 px-4 text-slate-600 max-w-xs truncate">
+                        {order.customerAddress || <span className="text-slate-400 italic">Self Pickup</span>}
+                      </td>
+                      <td className="py-3 px-4 text-slate-700">
+                        {order.lines && order.lines.length > 0 ? (
+                          <span className="text-[11px] font-medium">
+                            {order.lines.map((l: any) => `${Number(l.quantity)}x ${l.productName}`).join(', ')}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">No items</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">
+                        {formatCurrency(Number(order.totalAmount))}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span
+                          className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
+                            order.status === 'CONVERTED'
+                              ? 'bg-teal-50 text-teal-800 border border-teal-200'
+                              : order.status === 'DELIVERED'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : order.status === 'CONFIRMED'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200'
+                          }`}
+                        >
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {order.status === 'CONVERTED' ? (
+                          <span className="text-[11px] text-teal-700 font-semibold inline-flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Invoiced
+                          </span>
+                        ) : (
+                          <div className="flex items-center justify-center gap-1.5">
+                            {order.status === 'NEW' && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateOnlineOrderStatusMutation.mutate({
+                                    orderId: order.id,
+                                    status: 'CONFIRMED',
+                                  })
+                                }
+                                className="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold border border-amber-200 transition"
+                              >
+                                Accept
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => convertOnlineOrderMutation.mutate(order.id)}
+                              disabled={convertOnlineOrderMutation.isPending}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-teal-600 hover:bg-teal-700 text-white font-semibold text-[11px] shadow-sm transition disabled:opacity-50"
+                            >
+                              Convert to Invoice <ArrowRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))
               )}
             </tbody>
           </table>
