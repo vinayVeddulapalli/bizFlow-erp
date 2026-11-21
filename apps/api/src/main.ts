@@ -23,6 +23,7 @@ async function bootstrap() {
       if (
         origin.includes('localhost') ||
         origin.includes('onrender.com') ||
+        origin.includes('vercel.app') ||
         origin === process.env.WEB_APP_URL ||
         process.env.NODE_ENV !== 'production'
       ) {
